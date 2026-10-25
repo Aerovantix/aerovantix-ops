@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+<!-- Aerovantix Ops · Iconografía de línea propia. Retícula 24 × 24, trazo 1.75 (definido en CSS), extremos redondeados. -->
+<symbol id="i-inicio" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7V20a.5.5 0 0 1-.5.5h-5v-6h-6v6H4a.5.5 0 0 1-.5-.5z"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><path d="M3 20.5h18M6.5 20.5v-7M11.5 20.5V5M16.5 20.5v-10"/></symbol>
+<symbol id="i-clientes" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.3-5.5 6.5-5.5s5.9 2.1 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2.4.2 4 2 4.5 4.8"/></symbol>
+<symbol id="i-cotizacion" viewBox="0 0 24 24"><path d="M6 3h8l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 12.5h7M8.5 16.5h5"/></symbol>
+<symbol id="i-orden" viewBox="0 0 24 24"><path d="M8.5 4.5H6a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-15a1 1 0 0 0-1-1h-2.5"/><rect x="8.5" y="2.5" width="7" height="4" rx="1"/><path d="M8.5 11.5h7M8.5 15.5h4.5"/></symbol>
+<symbol id="i-dron" viewBox="0 0 24 24"><circle cx="5.5" cy="5.5" r="2.8"/><circle cx="18.5" cy="5.5" r="2.8"/><circle cx="5.5" cy="18.5" r="2.8"/><circle cx="18.5" cy="18.5" r="2.8"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/><path d="m7.5 7.5 2 2M16.5 7.5l-2 2M7.5 16.5l2-2M16.5 16.5l-2-2"/></symbol>
+<symbol id="i-mapa" viewBox="0 0 24 24"><path d="m3 7 6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></symbol>
+<symbol id="i-llave" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3M16.5 6.5l3 3M13.8 9.2l2 2"/></symbol>
+<symbol id="i-herramienta" viewBox="0 0 24 24"><path d="M14.5 3.6a4.8 4.8 0 0 0-4.3 6.6l-6.4 6.4a2 2 0 0 0 2.8 2.8l6.4-6.4a4.8 4.8 0 0 0 6.6-4.3l-2.8 2.8-3-.6-.6-3z"/></symbol>
+<symbol id="i-inventario" viewBox="0 0 24 24"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9M7.8 5.3l8.4 4.5"/></symbol>
+<symbol id="i-compras" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2.5 3.5h2.6l2.3 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8l1.4-7.2H6"/></symbol>
+<symbol id="i-caja" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/></symbol>
+<symbol id="i-nomina" viewBox="0 0 24 24"><path d="M19 7.5V5a1.5 1.5 0 0 0-1.5-1.5H5.5a2 2 0 0 0 0 4H19.5a1 1 0 0 1 1 1V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5.5"/><path d="M16 14h.01"/><circle cx="16" cy="14" r="1.6"/></symbol>
+<symbol id="i-plan" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M9 15l2 2 4-4"/></symbol>
+<symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01"/></symbol>
+<symbol id="i-decision" viewBox="0 0 24 24"><path d="M12 3.5v17M8 20.5h8M4.5 6.5h15M6.5 6.5l-3 6.5h6zM17.5 6.5l-3 6.5h6z"/><path d="M3.5 13a3 3 0 0 0 6 0M14.5 13a3 3 0 0 0 6 0"/></symbol>
+<symbol id="i-sop" viewBox="0 0 24 24"><path d="M10 6h10.5M10 12h10.5M10 18h10.5M3.5 6l1.5 1.5L8 4.5M3.5 12l1.5 1.5L8 10.5M3.5 18l1.5 1.5L8 16.5"/></symbol>
+<symbol id="i-soporte" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></symbol>
+<symbol id="i-capacitacion" viewBox="0 0 24 24"><path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v5.5"/></symbol>
+<symbol id="i-aviso" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+<symbol id="i-usuarios" viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20.5c.7-3.8 3.6-6 7-6 1.3 0 2.5.3 3.5.9"/><circle cx="18" cy="17.5" r="2.3"/><path d="M18 13.4v1.3M18 20.3v1.3M14 17.5h1.4M20.6 17.5H22"/></symbol>
+<symbol id="i-catalogo" viewBox="0 0 24 24"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.8 8.8a1.4 1.4 0 0 1 0 2l-6.6 6.6a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.5"/></symbol>
+<symbol id="i-arranque" viewBox="0 0 24 24"><path d="M5 21V3.5M5 4h12l-2.5 4.5L17 13H5"/></symbol>
+<symbol id="i-sincronizar" viewBox="0 0 24 24"><path d="M19.5 11A7.5 7.5 0 0 0 6 6.6L4.5 8M4.5 4v4h4M4.5 13A7.5 7.5 0 0 0 18 17.4l1.5-1.4M19.5 20v-4h-4"/></symbol>
+<symbol id="i-nube" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .4-8A6 6 0 0 0 6.3 9 4.8 4.8 0 0 0 7 18.5z"/><path d="m9.5 13.8 2 2 3.5-3.5"/></symbol>
+<symbol id="i-sin-conexion" viewBox="0 0 24 24"><path d="M9.5 6.3A6 6 0 0 1 17.9 10.5a4 4 0 0 1 2.4 6.9M17 18.5H7A4.8 4.8 0 0 1 6.3 9M3 3l18 18"/></symbol>
+<symbol id="i-camara" viewBox="0 0 24 24"><path d="M4 7.5h3l1.5-2.5h7L17 7.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="i-ubicacion" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+<symbol id="i-firma" viewBox="0 0 24 24"><path d="M3 20.5h7M15 4l5 5L9.5 19.5h-5v-5z"/><path d="m12.5 6.5 5 5"/></symbol>
+<symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+<symbol id="i-filtro" viewBox="0 0 24 24"><path d="M3.5 5h17l-6.5 8v5.5l-4 2V13z"/></symbol>
+<symbol id="i-derecha" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-izquierda" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="i-abajo" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+<symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-10"/></symbol>
+<symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3v.2"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.2"/></symbol>
+<symbol id="i-error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+<symbol id="i-exito" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/></symbol>
+<symbol id="i-salir" viewBox="0 0 24 24"><path d="M15 4h3.5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H15M10 16.5 5.5 12 10 7.5M5.5 12h10"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-ayuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.2"/></symbol>
+<symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+<symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+<symbol id="i-pdf" viewBox="0 0 24 24"><path d="M6 3h8l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M12 11v6M9.5 14.5 12 17l2.5-2.5"/></symbol>
+<symbol id="i-editar" viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+<symbol id="i-aprobar" viewBox="0 0 24 24"><path d="M12 3 4.5 6v6c0 4.5 3.2 7.6 7.5 9 4.3-1.4 7.5-4.5 7.5-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+<symbol id="i-opciones" viewBox="0 0 24 24"><path d="M12 6h.01M12 12h.01M12 18h.01" stroke-width="3"/></symbol>
+<symbol id="i-telefono" viewBox="0 0 24 24"><path d="M5 3.5h3.5l1.8 4.5-2.3 1.5a11 11 0 0 0 6.5 6.5l1.5-2.3 4.5 1.8V19a1.5 1.5 0 0 1-1.5 1.5A16.5 16.5 0 0 1 3.5 5 1.5 1.5 0 0 1 5 3.5z"/></symbol>
+<symbol id="i-viento" viewBox="0 0 24 24"><path d="M3 8.5h10.5a2.5 2.5 0 1 0-2.5-2.5M3 12.5h15.5a2.5 2.5 0 1 1-2.5 2.5M3 16.5h7"/></symbol>
+</svg>

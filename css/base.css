@@ -1,0 +1,105 @@
+/* Aerovantix Ops · Base: reinicio, tipografía y estructura de la app. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; min-height: 100dvh;
+  font-family: var(--fuente-texto); font-size: var(--t-base); line-height: var(--interlineado-texto);
+  color: var(--texto); background: var(--fondo-app);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote, fieldset { margin: 0; padding: 0; }
+ul[role="list"], ol[role="list"] { list-style: none; }
+fieldset { border: 0; min-width: 0; }
+legend { padding: 0; }
+img, svg, canvas { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; margin: 0; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: var(--avx-info); text-underline-offset: 2px; }
+a:hover { color: var(--avx-marino); }
+table { border-collapse: collapse; border-spacing: 0; }
+hr { border: 0; border-top: 1px solid var(--avx-linea); margin: var(--e-6) 0; }
+::selection { background: var(--avx-marino-100); color: var(--avx-marino); }
+
+:focus { outline: none; }
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; border-radius: var(--r-campo); }
+.sobre-marino :focus-visible { outline-color: var(--avx-blanco); }
+
+.icono { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.icono--20 { width: 20px; height: 20px; }
+.icono--16 { width: 16px; height: 16px; stroke-width: 2; }
+.icono--32 { width: 32px; height: 32px; stroke-width: 1.5; }
+
+.solo-lector { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- Tipografía ---------- */
+.titulo-pantalla, .titulo-seccion, .titulo-tarjeta, .cifra {
+  font-family: var(--fuente-titulos); font-weight: 700; line-height: var(--interlineado-titulos); color: var(--avx-marino);
+  letter-spacing: -0.01em;
+}
+.titulo-pantalla { font-size: var(--t-xl); }
+.titulo-seccion { font-size: var(--t-lg); }
+.titulo-tarjeta { font-size: var(--t-md); }
+.cifra { font-size: var(--t-3xl); letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
+.texto-grande { font-size: var(--t-md); }
+.texto-sm { font-size: var(--t-sm); }
+.texto-suave { color: var(--texto-suave); }
+.texto-fuerte { font-weight: 700; }
+.numero { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.prosa { max-width: var(--ancho-lectura); }
+.prosa > * + * { margin-top: var(--e-3); }
+
+@media (min-width: 1024px) {
+  .titulo-pantalla { font-size: var(--t-2xl); }
+}
+
+/* ---------- Estructura de la app ---------- */
+.app { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; }
+.app > * { min-width: 0; }
+
+/* Barra de marca (móvil) — el único elemento audaz: marino + línea de horizonte roja */
+.barra-marca {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: var(--e-2);
+  min-height: calc(var(--barra-superior) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) var(--e-2) 0 var(--e-4);
+  background: var(--avx-marino); color: var(--texto-invertido);
+  border-bottom: var(--linea-horizonte) solid var(--avx-rojo);
+}
+.barra-marca__inicio { display: flex; align-items: center; min-height: 44px; min-width: 44px; }
+.barra-marca__logo { height: 30px; width: auto; }
+.barra-marca__espacio { flex: 1; }
+
+.contenido {
+  width: 100%; max-width: 1200px; margin: 0 auto;
+  padding: var(--e-5) var(--e-4) calc(var(--barra-inferior) + var(--e-8) + env(safe-area-inset-bottom));
+}
+.encabezado-pantalla { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--e-3); margin-bottom: var(--e-5); }
+.encabezado-pantalla__sub { margin-top: var(--e-1); color: var(--texto-suave); }
+
+.pila > * + * { margin-top: var(--e-4); }
+.pila--6 > * + * { margin-top: var(--e-6); }
+.pila--10 > * + * { margin-top: var(--e-10); }
+.fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3); }
+.rejilla { display: grid; gap: var(--e-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.rejilla--2 { display: grid; gap: var(--e-4); grid-template-columns: 1fr; }
+@media (min-width: 720px) { .rejilla--2 { grid-template-columns: 1fr 1fr; } }
+
+/* Pie de marca */
+.pie-marca {
+  display: flex; align-items: center; justify-content: center; gap: var(--e-2);
+  padding: var(--e-6) var(--e-4) calc(var(--barra-inferior) + var(--e-6) + env(safe-area-inset-bottom));
+  color: var(--texto-suave); font-size: var(--t-sm); text-align: center;
+}
+
+/* ---------- Escritorio: menú lateral + barra superior blanca ---------- */
+.menu-lateral { display: none; }
+@media (min-width: 1024px) {
+  .app { grid-template-columns: var(--menu-lateral) minmax(0, 1fr); grid-template-rows: auto 1fr auto; }
+  .barra-marca { display: none; }
+  .menu-lateral { display: flex; grid-row: 1 / -1; }
+  .barra-escritorio { display: flex; }
+  .contenido { padding: var(--e-8) var(--e-10) var(--e-10); }
+  .pie-marca { padding-bottom: var(--e-6); }
+}

@@ -1,0 +1,98 @@
+/* Aerovantix Ops · Tokens de marca
+   Fuentes de marca: logo oficial (Drive "Logo.jpg") y plantilla oficial de cotización (.docx).
+   Documentación: docs/marca.md. Sin modo oscuro (por especificación). */
+
+@font-face { font-family: "Aerovantix Titulos"; src: url("../fuentes/aerovantix-titulos-700.woff") format("woff"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Aerovantix Titulos"; src: url("../fuentes/aerovantix-titulos-400.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Aerovantix Texto"; src: url("../fuentes/aerovantix-texto-400.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Aerovantix Texto"; src: url("../fuentes/aerovantix-texto-700.woff") format("woff"); font-weight: 700; font-style: normal; font-display: swap; }
+
+:root {
+  color-scheme: light;
+
+  /* ---------- Paleta de marca (HEX exactos) ---------- */
+  --avx-marino: #042146;        /* Primario · plantilla (encabezados, partidas, total) · logo #012046 */
+  --avx-marino-900: #021530;    /* presionado */
+  --avx-marino-800: #0A2D5C;    /* hover sobre marino */
+  --avx-marino-100: #DCE4EF;    /* selección, foco suave */
+  --avx-marino-50: #EEF2F7;     /* fila activa, tinte informativo de marca */
+  --avx-rojo: #DB0513;          /* Acento · logo (ondas de señal, líneas, sucursal) */
+  --avx-rojo-claro: #FF3B30;    /* acento sobre fondo marino (contraste 4.52:1) */
+  --avx-grafito: #5B5C5C;       /* Secundario · logo (brazos de la A, X, arco) */
+  --avx-grafito-claro: #B0B8C2; /* secundario sobre fondo marino */
+
+  /* ---------- Neutros (plantilla) ---------- */
+  --avx-tinta: #2B2B2B;         /* texto principal · plantilla */
+  --avx-texto-2: #6B6B6B;       /* etiquetas y texto secundario · plantilla */
+  --avx-niebla: #F4F5F4;        /* paneles y filas alternas · plantilla */
+  --avx-blanco: #FFFFFF;
+  --avx-linea: #DDE1E5;         /* divisores */
+  --avx-borde-campo: #858F9C;   /* borde de campos (≥ 3:1 sobre blanco) */
+  --avx-deshabilitado: #A3ABB5;
+
+  /* ---------- Estados ---------- */
+  --avx-exito: #1B7A3A;       --avx-exito-fondo: #E7F4EC;
+  --avx-advertencia: #8A5300; --avx-advertencia-fondo: #FDF1D8; --avx-advertencia-marca: #E59A12;
+  --avx-error: #B3141C;       --avx-error-fondo: #FCE9EA;
+  --avx-info: #1E5AA8;        --avx-info-fondo: #E8F0FA;
+
+  /* ---------- Roles semánticos ---------- */
+  --fondo-app: var(--avx-niebla);
+  --superficie: var(--avx-blanco);
+  --superficie-panel: var(--avx-niebla);
+  --texto: var(--avx-tinta);
+  --texto-suave: var(--avx-texto-2);
+  --texto-invertido: var(--avx-blanco);
+  --primario: var(--avx-marino);
+  --acento: var(--avx-rojo);
+  --foco: var(--avx-marino);
+
+  /* ---------- Tipografía ---------- */
+  --fuente-titulos: "Aerovantix Titulos", "Century Gothic", "Avenir Next", sans-serif;
+  --fuente-texto: "Aerovantix Texto", Arial, "Helvetica Neue", sans-serif;
+  /* Escala (rem = 16 px): 12 · 14 · 16 · 18 · 21 · 24 · 30 · 36 · 48 */
+  --t-xs: 0.75rem;   /* 12 · solo marcas de tiempo en tablas de escritorio */
+  --t-sm: 0.875rem;  /* 14 · etiquetas, ayudas */
+  --t-base: 1rem;    /* 16 · texto base (mínimo en móvil) */
+  --t-md: 1.125rem;  /* 18 · títulos de tarjeta, campos en móvil */
+  --t-lg: 1.3125rem; /* 21 · títulos de sección */
+  --t-xl: 1.5rem;    /* 24 · título de pantalla (móvil) */
+  --t-2xl: 1.875rem; /* 30 · título de pantalla (escritorio) */
+  --t-3xl: 2.25rem;  /* 36 · cifras KPI */
+  --t-4xl: 3rem;     /* 48 · cifra destacada */
+  --interlineado-texto: 1.5;
+  --interlineado-titulos: 1.2;
+
+  /* ---------- Espaciado (retícula de 4 px) ---------- */
+  --e-1: 4px; --e-2: 8px; --e-3: 12px; --e-4: 16px; --e-5: 20px; --e-6: 24px; --e-8: 32px; --e-10: 40px; --e-12: 48px; --e-16: 64px;
+
+  /* ---------- Radios (por jerarquía, no uno solo) ---------- */
+  --r-campo: 4px;    /* campos, chips, celdas: nítidos como la plantilla */
+  --r-boton: 6px;
+  --r-tarjeta: 8px;  /* igual que la placa "Sucursal" del logo */
+  --r-hoja: 14px;    /* modales y hojas inferiores */
+  --r-total: 999px;  /* badges numéricos */
+
+  /* ---------- Elevación (sombra teñida de marino) ---------- */
+  --sombra-1: 0 1px 2px rgba(4, 33, 70, 0.10);
+  --sombra-2: 0 2px 4px rgba(4, 33, 70, 0.06), 0 6px 16px rgba(4, 33, 70, 0.08);
+  --sombra-3: 0 12px 32px rgba(4, 33, 70, 0.22);
+
+  /* ---------- Medidas de interfaz ---------- */
+  --toque: 44px;          /* objetivo táctil mínimo */
+  --toque-campo: 48px;    /* altura de campo en móvil */
+  --barra-superior: 56px;
+  --barra-inferior: 64px;
+  --menu-lateral: 272px;
+  --linea-horizonte: 3px; /* la línea roja del logo bajo la barra de marca */
+  --ancho-lectura: 72ch;
+
+  /* ---------- Movimiento ---------- */
+  --dur-rapida: 120ms;
+  --dur-media: 200ms;
+  --curva: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-rapida: 0ms; --dur-media: 0ms; }
+}
