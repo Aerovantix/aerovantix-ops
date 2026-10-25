@@ -47,6 +47,81 @@ export const cfgMovimientos = {
   extrasDetalle: async (r, cuerpo) => { cuerpo.append(h('p', 'Comprobante: ', r.comprobante_url ? enlace(r.comprobante_url, 'Abrir en Drive') : ((r._archivosPendientes || []).length ? 'por subir' : 'sin comprobante'))); }
 };
 
+// ---------- Inversión inicial (control demostrativo: no entra a caja, P&L ni flujo) ----------
+const CATEGORIAS_INVERSION = ['Equipo y drones', 'Local y mobiliario', 'Trámites y legales', 'Marca y lanzamiento', 'Agroquímicos y equipo de mezcla'];
+const opPagadoPor = () => [{ v: 'Empresa', l: 'Empresa (caja de Aerovantix)' }].concat(opUsuarios(['Dirección', 'Socio']).map(u => ({ v: 'Aportación de ' + u.l, l: 'Aportación de ' + u.l })));
+let fotoComprobanteInv = null;
+export const cfgInversion = {
+  tabla: 'InversionInicial', ruta: 'inversion', titulo: 'Inversión inicial', singular: 'partida de inversión', singularMayus: 'Partida de inversión', femenino: true, icono: 'caja',
+  textoNuevo: 'Nueva inversión',
+  nuevo: () => ({ fecha: hoyIso(), estatus: 'Realizada', pagado_por: 'Empresa' }),
+  campos: () => [
+    { c: 'estatus', l: 'Estatus', t: 'opciones', op: ['Realizada', 'Por realizar', 'Cancelada'], req: true, ancho: 'medio', ayuda: 'Cancelada se conserva pero no suma.' },
+    { c: 'fecha', l: 'Fecha (real o estimada)', t: 'fecha', ancho: 'medio', validar: (v, o) => (o.estatus === 'Realizada' && !v ? 'Capture la fecha en que se realizó.' : '') },
+    { c: 'categoria', l: 'Categoría', t: 'opciones', op: CATEGORIAS_INVERSION, req: true, ancho: 'medio' },
+    { c: 'concepto', l: 'Concepto', t: 'texto', req: true, ancho: 'medio', ph: 'Ej. mezclador de 200 L y mangueras' },
+    { c: 'monto_con_iva', l: 'Monto con IVA', t: 'dinero', req: true, min: 0, ancho: 'medio', validar: v => (v !== '' && !(Number(v) > 0) ? 'El monto debe ser mayor que cero.' : '') },
+    { c: 'iva', l: 'IVA incluido', t: 'dinero', min: 0, ancho: 'medio', ayuda: 'Vacío si no causa IVA.', validar: (v, o) => (Number(v) > Number(o.monto_con_iva) ? 'El IVA no puede ser mayor que el monto.' : '') },
+    { c: 'proveedor', l: 'Proveedor', t: 'texto', ancho: 'medio', lista: 'proveedores-inversion' },
+    { c: 'pagado_por', l: 'Pagado por', t: 'opciones', op: opPagadoPor, ancho: 'medio', ayuda: 'Empresa o aportación directa de un socio.' },
+    { c: 'notas', l: 'Notas', t: 'area', filas: 2 }
+  ],
+  calculados: [{ c: 'monto_sin_iva', l: 'Monto sin IVA', t: 'dinero' }],
+  extrasForm: (f, cuerpo) => {
+    const dl = h('datalist', { id: 'proveedores-inversion' }, cat('Proveedores').map(x => h('option', { value: x.nombre })));
+    fotoComprobanteInv = selectorFotos('Foto del comprobante');
+    cuerpo.querySelector('form').append(dl, fotoComprobanteInv.el);
+  },
+  despuesDeGuardar: async g => {
+    const fotos = fotoComprobanteInv ? fotoComprobanteInv.fotos() : [];
+    if (fotos.length) await datos.adjuntar('InversionInicial', g.id, 'comprobante_url', fotos[0], 'Comprobante.jpg', { resumen: 'Comprobante de ' + (g.concepto || 'inversión') });
+    ir('inversion/' + g.id, { reemplazar: true });
+  },
+  columnas: [
+    { l: 'Fecha', v: r => fecha(r.fecha) }, { l: 'Concepto', v: r => h('span', h('strong', r.concepto), h('span.sub', r.categoria || '')) },
+    { l: 'Monto con IVA', v: r => h('span', { style: r.estatus === 'Cancelada' ? { textDecoration: 'line-through', color: 'var(--texto-suave)' } : null }, dinero(r.monto_con_iva)), num: true },
+    { l: 'Pagado por', v: r => r.pagado_por || '—' }, { l: 'Estatus', v: r => chip(r.estatus) }
+  ],
+  movil: { titulo: r => r.concepto, chip: r => chip(r.estatus), meta: r => [dinero(r.monto_con_iva), r.categoria, r.fecha ? fecha(r.fecha) : null] },
+  texto: r => [r.concepto, r.categoria, r.proveedor, r.pagado_por, r.notas].join(' '),
+  filtros: [{ t: 'Realizadas', f: r => r.estatus === 'Realizada' }, { t: 'Por realizar', f: r => r.estatus === 'Por realizar' }, { t: 'Canceladas', f: r => r.estatus === 'Cancelada' }],
+  orden: (a, b) => (a.estatus === 'Cancelada') - (b.estatus === 'Cancelada') || String(b.fecha || '').localeCompare(String(a.fecha || '')),
+  vacio: { t: 'Aún no hay inversión registrada', d: 'Registre lo que ya se invirtió y lo que falta por invertir para arrancar la operación.' },
+  tituloDe: r => r.concepto || 'Inversión', subDe: r => `${r.categoria || ''} · ${dinero(r.monto_con_iva)}`, estatusDe: r => r.estatus,
+  extrasDetalle: async (r, cuerpo) => { cuerpo.append(h('p', 'Comprobante: ', r.comprobante_url ? enlace(r.comprobante_url, 'Abrir en Drive') : ((r._archivosPendientes || []).length ? 'por subir' : 'sin comprobante'))); }
+};
+
+/** Resumen + lista. Los totales se calculan aquí con los registros; nada se envía a caja ni a Finanzas. */
+export async function renderInversion(zona) {
+  vaciar(zona).append(esqueleto(3));
+  let regs, desdeCache;
+  try { ({ registros: regs, desdeCache } = await datos.listar('InversionInicial')); } catch (e) { vaciar(zona).append(alerta('error', 'No se pudo cargar la inversión inicial', errorTexto(e))); return; }
+  vaciar(zona);
+  const av = avisoCache(desdeCache); if (av) zona.append(av);
+  zona.append(alerta('info', 'Solo control de la inversión inicial', 'Estas partidas no se suman a la caja, al estado de resultados ni al flujo de efectivo.'));
+  const vivos = regs.filter(r => r.estatus !== 'Cancelada');
+  const suma = (lista, campo = 'monto_con_iva') => lista.reduce((t, r) => t + (Number(r[campo]) || 0), 0);
+  const real = vivos.filter(r => r.estatus === 'Realizada'), pend = vivos.filter(r => r.estatus === 'Por realizar');
+  const total = suma(vivos);
+  zona.append(h('div.rejilla.rejilla--kpi',
+    kpi('Invertido', dinero(suma(real)), `${real.length} partida(s) · ${dinero(suma(real, 'monto_sin_iva'))} sin IVA`),
+    kpi('Por invertir', dinero(suma(pend)), `${pend.length} partida(s) · ${dinero(suma(pend, 'monto_sin_iva'))} sin IVA`),
+    kpi('Inversión total', dinero(total), total ? `${Math.round(suma(real) / total * 100)} % ya realizado` : 'Montos con IVA')));
+  if (vivos.length) {
+    const fila = (nombre, lista) => { const r = suma(lista.filter(x => x.estatus === 'Realizada')), p = suma(lista.filter(x => x.estatus === 'Por realizar')); return [nombre, r, p, r + p]; };
+    const tabla = (titulo, encabezado, filas) => h('section.pila', h('h2.titulo-seccion', titulo),
+      h('div.tabla-contenedor', h('table.tabla.tabla--compacta',
+        h('thead', h('tr', [encabezado, 'Invertido', 'Por invertir', 'Total', '% del total'].map((x, i) => h('th', { class: i ? 'num' : null, scope: 'col' }, x)))),
+        h('tbody', filas.map(f => h('tr', h('td', f[0]), [f[1], f[2], f[3]].map(x => h('td.num', dinero(x))), h('td.num', pct(total ? f[3] / total : 0)))),
+          h('tr.fila-total', h('td', 'Total'), h('td.num', dinero(suma(real))), h('td.num', dinero(suma(pend))), h('td.num', dinero(total)), h('td.num', pct(1)))))));
+    const cats = CATEGORIAS_INVERSION.map(c => fila(c, vivos.filter(r => r.categoria === c))).filter(f => f[3]);
+    const quienes = [...new Set(vivos.map(r => r.pagado_por || 'Sin especificar'))].map(q => fila(q, vivos.filter(r => (r.pagado_por || 'Sin especificar') === q))).sort((a, b) => b[3] - a[3]);
+    zona.append(tabla('Por categoría', 'Categoría', cats), tabla('Quién la pagó', 'Origen del dinero', quienes));
+  }
+  const lista = h('div'); zona.append(h('section.pila', h('h2.titulo-seccion', 'Partidas'), lista));
+  await renderLista(lista, cfgInversion, { sinBoton: true });
+}
+
 // ---------- Finanzas (vista de la Ficha) ----------
 export async function renderFinanzas(zona) {
   vaciar(zona).append(esqueleto(3));
@@ -87,17 +162,24 @@ function kpi(nombre, valor, contexto) { return h('div.kpi', h('div.kpi__nombre',
 
 async function pantallaCaja(c, p, q) {
   const tab = q.vista || 'movimientos';
-  const cuerpo = pantalla(c, { titulo: 'Caja y finanzas', acciones: [tab === 'movimientos' ? botonNuevo(cfgMovimientos) : null] });
+  const cuerpo = pantalla(c, { titulo: 'Caja y finanzas', acciones: [tab === 'movimientos' ? botonNuevo(cfgMovimientos) : (tab === 'inversion' ? botonNuevo(cfgInversion) : null)] });
   const zona = h('div.pila--6');
-  cuerpo.append(pestanas([{ id: 'movimientos', t: 'Movimientos' }, puede('Finanzas') && { id: 'finanzas', t: 'Finanzas' }], tab,
+  cuerpo.append(pestanas([{ id: 'movimientos', t: 'Movimientos' }, puede('Finanzas') && { id: 'finanzas', t: 'Finanzas' }, puede('InversionInicial') && { id: 'inversion', t: 'Inversión' }], tab,
     v => { history.replaceState(null, '', '#/caja?vista=' + v); pantallaCaja(c, p, { vista: v }); }), zona);
   if (tab === 'finanzas') return renderFinanzas(zona);
+  if (tab === 'inversion') return renderInversion(zona);
   await renderLista(zona, cfgMovimientos, { sinBoton: true });
 }
 
-async function pantallaFinanzas(c) {
-  const cuerpo = pantalla(c, { titulo: 'Finanzas', sub: 'Estado de resultados, punto de equilibrio y flujo de caja (solo lectura).' });
-  const z = h('div.pila--6'); cuerpo.append(z); await renderFinanzas(z);
+async function pantallaFinanzas(c, p, q = {}) {
+  const tab = q.vista === 'inversion' && puede('InversionInicial') ? 'inversion' : 'finanzas';
+  const cuerpo = pantalla(c, { titulo: 'Finanzas', sub: 'Estado de resultados, punto de equilibrio, flujo de caja e inversión inicial (solo lectura).' });
+  const z = h('div.pila--6');
+  if (puede('InversionInicial')) cuerpo.append(pestanas([{ id: 'finanzas', t: 'Finanzas' }, { id: 'inversion', t: 'Inversión inicial' }], tab,
+    v => { history.replaceState(null, '', '#/finanzas?vista=' + v); pantallaFinanzas(c, p, { vista: v }); }));
+  cuerpo.append(z);
+  if (tab === 'inversion') return renderInversion(z);
+  await renderFinanzas(z);
 }
 
 // ---------- Nómina ----------
@@ -241,7 +323,8 @@ const cfgDecisiones = {
 };
 
 export const rutas = [
-  { p: 'caja', r: pantallaCaja }, ...rutasCrud(cfgMovimientos),
+  { p: 'caja', r: pantallaCaja }, ...rutasCrud(cfgMovimientos), ...rutasCrud(cfgInversion).filter(x => x.p !== 'inversion'),
+  { p: 'inversion', r: (c, p, q) => (puede('Movimientos') ? pantallaCaja : pantallaFinanzas)(c, p, Object.assign({}, q, { vista: 'inversion' })) },
   { p: 'finanzas', r: pantallaFinanzas },
   { p: 'nomina', r: pantallaNomina }, ...rutasCrud(cfgNomina),
   { p: 'plan', r: pantallaPlan }, ...rutasCrud(cfgPlan).filter(x => x.p !== 'planes'),
