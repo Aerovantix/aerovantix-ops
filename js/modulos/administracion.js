@@ -106,7 +106,7 @@ const cfgNomina = {
   nuevo: () => ({ periodo: hoyIso().slice(0, 7) }),
   campos: () => [
     { c: 'periodo', l: 'Periodo', t: 'texto', req: true, ancho: 'medio', ph: 'AAAA-MM o quincena', ayuda: 'p. ej. 2026-10 o 2026-10 Q2' },
-    { c: 'empleado', l: 'Empleado', t: 'opciones', op: () => opUsuarios(['Dirección', 'Agronomía', 'Técnico']), req: true, ancho: 'medio' },
+    { c: 'empleado', l: 'Empleado', t: 'opciones', op: () => opUsuarios(['Dirección', 'Agronomía', 'Técnico', 'Piloto', 'Personal']), req: true, ancho: 'medio' },
     { c: 'dias_trabajados', l: 'Días trabajados', t: 'numero', min: 0, max: 31, ancho: 'medio' }, { c: 'faltas', l: 'Faltas', t: 'numero', min: 0, ancho: 'medio' },
     { c: 'horas_extra', l: 'Horas extra', t: 'numero', suf: 'h', min: 0, ancho: 'medio' }, { c: 'percepciones_adicionales', l: 'Percepciones adicionales', t: 'dinero', ancho: 'medio' },
     { c: 'incidencias', l: 'Incidencias', t: 'area', filas: 2 }
@@ -129,8 +129,13 @@ async function pantallaNomina(c, p, q) {
     const v = await datos.vista('Nomina');
     vaciar(zona); const av = avisoCache(v.desdeCache); if (av) zona.append(av);
     zona.append(h('p.texto-sm.texto-suave', 'Los sueldos y fechas de ingreso se capturan en Usuarios. ISR, cuotas IMSS, Infonavit y subsidio al empleo se calculan en la pestaña Nómina de la Ficha.'));
-    zona.append(h('div.tabla-contenedor', h('table.tabla.tabla--compacta', h('thead', h('tr', v.celdas[0].map((x, i) => h('th', { class: i ? 'num' : null }, x)))),
-      h('tbody', v.celdas.slice(1).map(f => { const g = f.length === 1 || f.slice(1).every(x => x === ''); return h('tr', { class: g ? 'fila-grupo' : (/^(Total|Neto|Costo total)/.test(f[0]) ? 'fila-total' : null) }, g ? h('td', { colspan: 6 }, f[0]) : f.map((x, i) => h('td', { class: i ? 'num' : null }, x))); })))));
+    // Solo las columnas de persona con nombre (la Ficha tiene 10), más concepto y total.
+    const nombres = v.celdas.find(f => String(f[0]) === 'Nombre') || [];
+    const ancho = v.celdas[0].length;
+    const cols = v.celdas[0].map((_, i) => i).filter(i => i === 0 || i === ancho - 1 || String(nombres[i] || '') !== '');
+    const tomar = f => cols.map(i => f[i] === undefined ? '' : f[i]);
+    zona.append(h('div.tabla-contenedor', h('table.tabla.tabla--compacta', h('thead', h('tr', tomar(v.celdas[0]).map((x, i) => h('th', { class: i ? 'num' : null }, x)))),
+      h('tbody', v.celdas.slice(1).map(f0 => { const f = tomar(f0); const g = f.slice(1).every(x => x === ''); return h('tr', { class: g ? 'fila-grupo' : (/^(Total|Neto|Costo total)/.test(f[0]) ? 'fila-total' : null) }, g ? h('td', { colspan: cols.length }, f[0]) : f.map((x, i) => h('td', { class: i ? 'num' : null }, x))); })))));
   } catch (e) { vaciar(zona).append(alerta('error', 'No se pudo cargar el cálculo', errorTexto(e))); }
 }
 

@@ -9,20 +9,27 @@ import { esDir, puede, cat, rol, usuario, nombreUsuario, refrescarBootstrap } fr
 import { ir } from '../router.js';
 import { VERSION } from '../config.js';
 
-const ROLES = ['Dirección', 'Agronomía', 'Técnico', 'Socio'];
+const ROLES = ['Dirección', 'Agronomía', 'Técnico', 'Piloto', 'Socio', 'Personal'];
+/** Personal = colaborador sin acceso a la app (limpieza, eventuales): solo cuenta para la nómina. */
+const SIN_ACCESO = 'Personal';
+const OP_ROLES = ROLES.map(r => ({ v: r, l: r === SIN_ACCESO ? 'Personal (sin acceso a la app)' : r }));
+const etiquetaRol = r => r === SIN_ACCESO ? 'Sin acceso' : r;
 
 // ---------- Usuarios ----------
-function camposUsuario(nuevo) {
+function camposUsuario(nuevo, r = {}) {
+  const pideClave = nuevo || r.rol === SIN_ACCESO; // alta, o dar acceso a alguien que estaba como Personal
   return [
     nuevo ? { c: 'usuario', l: 'Usuario', t: 'texto', req: true, ancho: 'medio', ayuda: '3 a 30 caracteres: minúsculas, números, punto o guion.', validar: v => (v && !/^[a-z0-9._-]{3,30}$/.test(v) ? 'Use de 3 a 30 caracteres: minúsculas, números, punto o guion.' : '') } : null,
     { c: 'nombre', l: 'Nombre completo', t: 'texto', req: true, ancho: nuevo ? 'medio' : null },
-    { c: 'rol', l: 'Rol', t: 'opciones', op: ROLES, req: true, ancho: 'medio' },
+    { c: 'rol', l: 'Rol', t: 'opciones', op: OP_ROLES, req: true, ancho: 'medio', ayuda: 'Piloto: solo sus órdenes, etapas, vuelos y checklists. Personal: solo nómina, sin acceso a la app.' },
     { c: 'puesto', l: 'Puesto', t: 'texto', ancho: 'medio' },
     { c: 'correo', l: 'Correo interno', t: 'correo', ancho: 'medio', ayuda: 'Recibe los avisos de Aerovantix Ops.' },
     { c: 'fecha_ingreso', l: 'Fecha de ingreso', t: 'fecha', ancho: 'medio' },
     { c: 'sueldo_diario', l: 'Sueldo diario', t: 'dinero', ancho: 'medio', ayuda: 'Solo lo ve Dirección. Alimenta la pestaña Nómina.' },
     { c: 'activo', l: 'Usuario activo', t: 'bool', def: true },
-    nuevo ? { c: 'contrasena_temporal', l: 'Contraseña temporal', t: 'texto', req: true, auto: 'new-password', ayuda: 'Al menos 8 caracteres. La persona la cambia en su primer inicio de sesión.', validar: v => (v && v.length < 8 ? 'Use al menos 8 caracteres.' : '') } : null
+    pideClave ? { c: 'contrasena_temporal', l: 'Contraseña temporal', t: 'texto', auto: 'new-password',
+      ayuda: nuevo ? 'Al menos 8 caracteres. La persona la cambia en su primer inicio de sesión. Déjela vacía si el rol es Personal.' : 'Solo si le da un rol con acceso a la app. Al menos 8 caracteres; la cambia en su primer inicio de sesión.',
+      validar: (v, todo) => (todo.rol !== SIN_ACCESO && !v ? 'Asigne una contraseña temporal para darle acceso a la app.' : (v && v.length < 8 ? 'Use al menos 8 caracteres.' : '')) } : null
   ].filter(Boolean);
 }
 
@@ -34,9 +41,9 @@ async function pantallaUsuarios(c) {
   vaciar(zona); const av = avisoCache(desdeCache); if (av) zona.append(av);
   zona.append(listado({
     registros: regs, buscarPh: 'Buscar nombre o usuario',
-    columnas: [{ l: 'Nombre', v: r => h('span', h('strong', r.nombre), h('span.sub', r.usuario)) }, { l: 'Rol', v: r => chip(r.rol, r.rol === 'Dirección' ? 'marca' : 'neutro') }, { l: 'Puesto', v: r => r.puesto || '—' },
+    columnas: [{ l: 'Nombre', v: r => h('span', h('strong', r.nombre), h('span.sub', r.usuario)) }, { l: 'Rol', v: r => chip(etiquetaRol(r.rol), r.rol === 'Dirección' ? 'marca' : 'neutro') }, { l: 'Puesto', v: r => r.puesto || '—' },
       { l: 'Ingreso', v: r => fecha(r.fecha_ingreso) }, { l: 'Sueldo diario', v: r => dinero(r.sueldo_diario), num: true }, { l: 'Estatus', v: r => chip(r.activo === false ? 'Inactivo' : 'Activo') }],
-    movil: { titulo: r => r.nombre, chip: r => chip(r.activo === false ? 'Inactivo' : 'Activo'), meta: r => [r.rol, r.usuario] },
+    movil: { titulo: r => r.nombre, chip: r => chip(r.activo === false ? 'Inactivo' : 'Activo'), meta: r => [etiquetaRol(r.rol), r.usuario] },
     texto: r => [r.nombre, r.usuario, r.rol, r.puesto].join(' '), orden: (a, b) => ROLES.indexOf(a.rol) - ROLES.indexOf(b.rol) || String(a.nombre).localeCompare(b.nombre, 'es'),
     href: r => 'usuarios/' + encodeURIComponent(r.usuario)
   }));
@@ -47,22 +54,24 @@ async function formUsuario(c, { u }) {
   let r = { activo: true };
   if (!nuevo) { try { const { registros } = await datos.listar('Usuarios'); r = registros.find(x => x.usuario === u) || null; } catch (e) { r = null; } }
   if (!r) { pantalla(c, { titulo: 'Usuario', volver: 'usuarios' }).append(alerta('advertencia', 'Usuario no disponible', 'Conéctese para consultarlo.')); return; }
-  const cuerpo = pantalla(c, { titulo: nuevo ? 'Nuevo usuario' : r.nombre, sub: nuevo ? null : `${r.usuario} · ${r.rol}`, volver: 'usuarios',
-    acciones: nuevo ? [] : [boton('Restablecer contraseña', { tipo: 'secundario', onclick: () => restablecer(r) })] });
-  const f = formulario(camposUsuario(nuevo), r);
+  const cuerpo = pantalla(c, { titulo: nuevo ? 'Nuevo usuario' : r.nombre, sub: nuevo ? null : `${r.usuario} · ${etiquetaRol(r.rol)}`, volver: 'usuarios',
+    acciones: nuevo || r.rol === SIN_ACCESO ? [] : [boton('Restablecer contraseña', { tipo: 'secundario', onclick: () => restablecer(r) })] });
+  const f = formulario(camposUsuario(nuevo, r), r);
   const guardar = boton(nuevo ? 'Crear usuario' : 'Guardar usuario', { ic: 'check' });
   cuerpo.append(h('form.tarjeta.pila', { novalidate: true, onsubmit: e => e.preventDefault(), autocomplete: 'off' }, f.el), h('div.barra-acciones', boton('Cancelar', { tipo: 'fantasma', href: '#/usuarios' }), guardar));
   guardar.addEventListener('click', async () => {
     if (!f.validar()) return toast('Revise los datos marcados.', 'error');
     if (!navigator.onLine) return toast('La administración de usuarios necesita conexión.', 'info');
     const v = f.leer();
+    if (!v.contrasena_temporal) delete v.contrasena_temporal;
+    if (v.rol === SIN_ACCESO) delete v.contrasena_temporal;
     guardar.disabled = true;
     try {
       if (nuevo) { v.id = datos.uuid(); v.usuario = String(v.usuario).toLowerCase(); await datos.enLinea('crearUsuario', v); }
       else { v.usuario = r.usuario; await datos.enLinea('actualizarUsuario', v); }
       f.campos.forEach(x => { if (x.def.c === 'contrasena_temporal') x.fijar(''); });
       await refrescarBootstrap();
-      toast(nuevo ? `Usuario ${v.usuario} creado. Entréguele su contraseña temporal en persona.` : 'Usuario guardado', 'exito', 8000);
+      toast(nuevo ? (v.rol === SIN_ACCESO ? `${v.nombre} registrado sin acceso a la app; ya cuenta para la nómina.` : `Usuario ${v.usuario} creado. Entréguele su contraseña temporal en persona.`) : 'Usuario guardado', 'exito', 8000);
       ir('usuarios', { reemplazar: true });
     } catch (e) { toast(errorTexto(e), 'error'); guardar.disabled = false; }
   });

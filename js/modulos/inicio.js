@@ -132,7 +132,8 @@ async function inicioAgronomia(cuerpo) {
 }
 
 async function inicioTecnico(cuerpo) {
-  const [os, ren, com] = await Promise.all([seguro(() => datos.listar('OrdenesServicio'), { registros: [] }), seguro(() => datos.listar('Rentas'), { registros: [] }), seguro(() => datos.listar('Compras'), { registros: [] })]);
+  const vacio = { registros: [] };
+  const [os, ren, com] = await Promise.all([seguro(() => datos.listar('OrdenesServicio'), vacio), puede('Rentas') ? seguro(() => datos.listar('Rentas'), vacio) : vacio, puede('Compras') ? seguro(() => datos.listar('Compras'), vacio) : vacio]);
   const enCampo = os.registros.filter(r => ['En ejecución', 'Pausada', 'Confirmada'].includes(r.estatus));
   cuerpo.append(h('section.pila', h('h2.titulo-seccion', 'Servicios en campo'),
     enCampo.length ? h('div.pila', enCampo.map(r => h('div.tarjeta.pila',
@@ -149,7 +150,9 @@ async function inicioTecnico(cuerpo) {
   const mant = cat('Equipos').filter(e => e.alerta_mant === true);
   if (mant.length) items.push({ ic: 'herramienta', t: `${mant.length} equipo(s) con mantenimiento por realizar`, d: mant.map(e => e.serie).join(', '), href: '#/flota', tono: 'rechazado' });
   cuerpo.append(h('section.pila', h('h2.titulo-seccion', 'Pendientes de operación'), listaAlertas(items)));
-  cuerpo.append(h('div.acciones-rapidas', boton('Registrar vuelo', { tipo: 'secundario', ic: 'dron', href: '#/vuelos/nuevo' }), boton('Registrar mantenimiento', { tipo: 'secundario', ic: 'herramienta', href: '#/mantenimientos/nuevo' }), boton('Nuevo ticket', { tipo: 'secundario', ic: 'soporte', href: '#/tickets/nuevo' })));
+  cuerpo.append(h('div.acciones-rapidas', puede('Vuelos', 'escribir') ? boton('Registrar vuelo', { tipo: 'secundario', ic: 'dron', href: '#/vuelos/nuevo' }) : null,
+    puede('Mantenimientos', 'escribir') ? boton('Registrar mantenimiento', { tipo: 'secundario', ic: 'herramienta', href: '#/mantenimientos/nuevo' }) : null,
+    puede('Tickets', 'escribir') ? boton('Nuevo ticket', { tipo: 'secundario', ic: 'soporte', href: '#/tickets/nuevo' }) : null));
   await bloquePlan(cuerpo);
 }
 

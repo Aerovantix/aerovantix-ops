@@ -55,6 +55,7 @@ const INFERIOR = {
   'Dirección': ['inicio', 'aprobaciones', 'os', 'pendientes', 'mas'],
   'Agronomía': ['inicio', 'crm', 'os', 'pendientes', 'mas'],
   'Técnico': ['inicio', 'os', 'flota', 'pendientes', 'mas'],
+  'Piloto': ['inicio', 'os', 'flota', 'pendientes', 'mas'],
   'Socio': ['inicio', 'finanzas', 'avisos', 'mas']
 };
 const CORTO = { inicio: 'Inicio', aprobaciones: 'Aprobar', os: 'Servicios', pendientes: 'Pendientes', crm: 'Clientes', flota: 'Flota', finanzas: 'Finanzas', avisos: 'Avisos', mas: 'Más' };

@@ -114,7 +114,7 @@ export const cfgVuelos = {
     { c: 'tarea_id_smartfarm', l: 'Id de tarea', t: r && r.origen_dato === 'SmartFarm' ? 'texto' : 'oculto', ro: !!(r && r.origen_dato === 'SmartFarm') },
     { c: 'fecha_hora', l: 'Fecha y hora', t: 'fechahora', req: true, ancho: 'medio' },
     { c: 'dron_serie', l: 'Dron', t: 'opciones', op: () => opEquipos(e => e.tipo === 'Dron'), req: true, ancho: 'medio' },
-    { c: 'piloto', l: 'Piloto', t: 'opciones', op: () => opUsuarios(['Técnico', 'Agronomía', 'Dirección']), ancho: 'medio' },
+    { c: 'piloto', l: 'Piloto', t: 'opciones', op: () => opUsuarios(['Piloto', 'Técnico', 'Agronomía', 'Dirección']), ancho: 'medio' },
     { c: 'duracion_min', l: 'Duración', t: 'numero', suf: 'min', min: 0, ancho: 'medio' },
     { c: 'area_ha', l: 'Área', t: 'numero', suf: 'ha', min: 0, ancho: 'medio' },
     { c: 'volumen_l', l: 'Volumen', t: 'numero', suf: 'L', min: 0, ancho: 'medio' },

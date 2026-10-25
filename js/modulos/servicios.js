@@ -9,7 +9,7 @@ import { ir } from '../router.js';
 import { opClientes, nombreCliente, opParcelas, nombreParcela, opUsuarios, opEquipos, botonGPS, selectorFotos, capturaFirma, miniaturasPendientes, enlace } from './comunes.js';
 
 const ABIERTAS = ['Programada', 'Pendiente de aprobación', 'Confirmada', 'En ejecución', 'Pausada'];
-const esTec = () => rol() === 'Técnico';
+const esTec = () => rol() === 'Técnico' || rol() === 'Piloto'; // personal de campo: solo órdenes asignadas
 
 // ================= Órdenes de servicio =================
 function camposOS(r) {
@@ -23,7 +23,7 @@ function camposOS(r) {
     { c: 'fecha_inicio_plan', l: 'Inicio planeado', t: 'fecha', ancho: 'medio' },
     { c: 'fecha_fin_plan', l: 'Fin planeado', t: 'fecha', ancho: 'medio' },
     { c: 'agronomo', l: 'Agrónomo responsable', t: 'opciones', op: () => opUsuarios(['Agronomía', 'Dirección']), ancho: 'medio' },
-    { c: 'tecnicos', l: 'Técnicos asignados', t: 'multi', op: () => opUsuarios(['Técnico']), vacio: 'Aún no hay técnicos dados de alta.' },
+    { c: 'tecnicos', l: 'Técnicos y pilotos asignados', t: 'multi', op: () => opUsuarios(['Técnico', 'Piloto']), vacio: 'Aún no hay técnicos ni pilotos dados de alta.' },
     { c: 'resumen_general', l: 'Resumen general', t: 'area', ayuda: 'Notas del servicio completo (objetivo, condiciones, acuerdos).' }
   ];
 }
@@ -213,7 +213,7 @@ async function formEtapa(c, { id, eid }) {
     { c: 'dosis', l: 'Dosis', t: 'numero', min: 0, ancho: 'medio' },
     { c: 'unidad_dosis', l: 'Unidad de dosis', t: 'opciones', op: ['L/ha', 'kg/ha'], ancho: 'medio' },
     { c: 'dron_serie', l: 'Dron', t: 'opciones', op: drones, ancho: 'medio' },
-    { c: 'piloto', l: 'Piloto', t: 'opciones', op: () => opUsuarios(['Técnico', 'Agronomía', 'Dirección']), ancho: 'medio' },
+    { c: 'piloto', l: 'Piloto', t: 'opciones', op: () => opUsuarios(['Piloto', 'Técnico', 'Agronomía', 'Dirección']), ancho: 'medio' },
     { c: 'baterias', l: 'Baterías usadas', t: 'multi', op: baterias, vacio: 'No hay baterías de flota propia registradas.' },
     { c: 'viento_ms', l: 'Viento', t: 'numero', suf: 'm/s', min: 0, max: 40, ancho: 'medio' },
     { c: 'temperatura', l: 'Temperatura', t: 'numero', suf: '°C', min: -10, max: 55, ancho: 'medio' },
