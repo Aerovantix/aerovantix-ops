@@ -4,11 +4,11 @@ import { ZONA } from './config.js';
 export const SPRITE = 'iconos/iconos.svg';
 
 /** h('div.clase', {atributos}, ...hijos) — crea nodos sin innerHTML para texto (evita inyección). */
-// Nulos, indefinidos y false no se pintan (evita el texto "null" en pantalla).
+// Nulos, indefinidos y false no se pintan (evita el texto "null" en pantalla) y las listas se aplanan (evita "[object HTMLDivElement]").
 for (const proto of [Element.prototype, DocumentFragment.prototype]) {
   for (const m of ['append', 'prepend']) {
     const orig = proto[m];
-    proto[m] = function (...nodos) { return orig.apply(this, nodos.filter(n => n !== null && n !== undefined && n !== false)); };
+    proto[m] = function (...nodos) { return orig.apply(this, nodos.flat(Infinity).filter(n => n !== null && n !== undefined && n !== false)); };
   }
 }
 

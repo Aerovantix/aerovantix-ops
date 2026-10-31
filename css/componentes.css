@@ -317,6 +317,7 @@
 .barra-escritorio { display: none; align-items: center; gap: var(--e-4); height: 64px; padding: 0 var(--e-10); background: var(--avx-blanco); border-bottom: 1px solid var(--avx-linea); position: sticky; top: 0; z-index: 20; }
 .barra-escritorio .campo-buscar { flex: 0 1 420px; }
 .barra-escritorio__espacio { flex: 1; }
+@media (min-width: 1024px) { .barra-escritorio { display: flex; } } /* en computadora: indicador de conexión, Sincronizar ahora y Mi cuenta */
 .usuario-mini { display: flex; align-items: center; gap: var(--e-3); }
 .avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--avx-marino); color: var(--avx-blanco); font-family: var(--fuente-titulos); font-weight: 700; font-size: var(--t-sm); flex: none; }
 .usuario-mini__nombre { font-weight: 700; line-height: 1.2; }
