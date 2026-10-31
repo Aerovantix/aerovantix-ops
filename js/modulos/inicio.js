@@ -65,12 +65,23 @@ async function renderGraficas(zona) {
 async function alertas() {
   const hoy = hoyIso(), en3 = sumarDiasIso(hoy, 3), manana = sumarDiasIso(hoy, 1);
   const out = [];
-  const mant = cat('Equipos').filter(e => e.alerta_mant === true);
+  if (esDir()) {
+    const sol = (await seguro(() => datos.listar('Solicitudes'), { registros: [] })).registros.filter(r => ['Recibida', 'En revisión'].includes(r.estatus));
+    if (sol.length) out.push({ ic: 'aviso', t: `${sol.length} solicitud(es) de clientes por atender`, d: sol.slice(0, 3).map(r => `${r.folio} · ${nombreCliente(r.cliente_id)}`).join(', '), href: '#/solicitudes', tono: 'pendiente' });
+  }
+  if (puede('Tickets')) {
+    const tck = (await seguro(() => datos.listar('Tickets'), { registros: [] })).registros.filter(r => r.estatus === 'Por asignar');
+    if (tck.length) out.push({ ic: 'soporte', t: `${tck.length} ticket(s) del portal por asignar`, d: tck.slice(0, 3).map(r => `${r.folio} · ${nombreCliente(r.cliente_id)}`).join(', '), href: '#/soporte', tono: 'pendiente' });
+  }
+  const mant = cat('Equipos').filter(e => e.alerta_mant === true && e.propiedad !== 'Del cliente');
   if (mant.length) out.push({ ic: 'herramienta', t: `${mant.length} equipo(s) con mantenimiento por realizar`, d: mant.slice(0, 3).map(e => e.serie).join(', '), href: '#/flota?vista=equipos', tono: 'rechazado' });
   const rep = cat('Existencias').filter(e => ['Reponer', 'Sin existencia'].includes(e.estatus_stock));
   if (rep.length) out.push({ ic: 'inventario', t: `${rep.length} SKU en mínimo o sin existencia`, d: rep.slice(0, 3).map(e => e.sku).join(', '), href: '#/inventario', tono: 'pendiente' });
   if (puede('Cotizaciones')) {
-    const cot = (await seguro(() => datos.listar('Cotizaciones'), { registros: [] })).registros.filter(r => ['Aprobada', 'Enviada'].includes(r.estatus) && r.vigente_hasta && r.vigente_hasta <= en3);
+    const todas = (await seguro(() => datos.listar('Cotizaciones'), { registros: [] })).registros;
+    const resp = todas.filter(r => r.estatus === 'Enviada' && r.respuesta_cliente);
+    if (resp.length) out.push({ ic: 'cotizacion', t: `${resp.length} cotización(es) con respuesta del cliente`, d: resp.slice(0, 3).map(r => `${r.folio}: ${r.respuesta_cliente}`).join(', '), href: '#/cotizaciones', tono: 'pendiente' });
+    const cot = todas.filter(r => ['Aprobada', 'Enviada'].includes(r.estatus) && r.vigente_hasta && r.vigente_hasta <= en3);
     if (cot.length) out.push({ ic: 'cotizacion', t: `${cot.length} cotización(es) por vencer o vencidas`, d: cot.slice(0, 3).map(r => r.folio).join(', '), href: '#/cotizaciones', tono: 'pendiente' });
   }
   if (puede('Rentas')) {
@@ -147,7 +158,7 @@ async function inicioTecnico(cuerpo) {
   if (porDevolver.length) items.push({ ic: 'llave', t: `${porDevolver.length} renta(s) por recibir de vuelta`, d: porDevolver.map(r => r.folio).join(', '), href: '#/rentas', tono: 'pendiente' });
   const oc = com.registros.filter(r => r.estatus === 'OC');
   if (oc.length) items.push({ ic: 'compras', t: `${oc.length} orden(es) de compra por recibir`, d: oc.map(r => r.folio).join(', '), href: '#/compras', tono: 'pendiente' });
-  const mant = cat('Equipos').filter(e => e.alerta_mant === true);
+  const mant = cat('Equipos').filter(e => e.alerta_mant === true && e.propiedad !== 'Del cliente');
   if (mant.length) items.push({ ic: 'herramienta', t: `${mant.length} equipo(s) con mantenimiento por realizar`, d: mant.map(e => e.serie).join(', '), href: '#/flota', tono: 'rechazado' });
   cuerpo.append(h('section.pila', h('h2.titulo-seccion', 'Pendientes de operación'), listaAlertas(items)));
   cuerpo.append(h('div.acciones-rapidas', puede('Vuelos', 'escribir') ? boton('Registrar vuelo', { tipo: 'secundario', ic: 'dron', href: '#/vuelos/nuevo' }) : null,
@@ -238,7 +249,7 @@ function resumenRegistro(tabla, r) {
 }
 
 // ---------- Avisos ----------
-const RUTA_REF = { Cotizaciones: 'cotizaciones', Compras: 'compras', OrdenesServicio: 'os', Rentas: 'rentas', Movimientos: 'movimientos', Tickets: 'tickets' };
+const RUTA_REF = { Cotizaciones: 'cotizaciones', Compras: 'compras', OrdenesServicio: 'os', Rentas: 'rentas', Movimientos: 'movimientos', Tickets: 'tickets', Solicitudes: 'solicitudes', Oportunidades: 'oportunidades' };
 async function pantallaAvisos(c) {
   const cuerpo = pantalla(c, { titulo: 'Avisos' });
   const zona = h('div'); cuerpo.append(zona); zona.append(esqueleto(3));

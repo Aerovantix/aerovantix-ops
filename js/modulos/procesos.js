@@ -5,8 +5,9 @@ import { pantalla, listado, avisoCache, pestanas } from '../vistas.js';
 import { rutasCrud, renderLista, botonNuevo } from '../crud.js';
 import * as datos from '../datos.js';
 import { esDir, puede, cat, usuario, nombreUsuario } from '../estado.js';
-import { ir } from '../router.js';
+import { ir, recargar } from '../router.js';
 import { opClientes, nombreCliente, opUsuarios, opEquipos, enlace } from './comunes.js';
+import { barraProgreso } from '../progreso.js';
 
 // ---------- SOPs ----------
 const cfgSOPs = {
@@ -102,23 +103,46 @@ async function ejecutarSOP(c, { id }, q) {
 const cfgTickets = {
   tabla: 'Tickets', ruta: 'tickets', titulo: 'Tickets de soporte', singular: 'ticket', singularMayus: 'Ticket', icono: 'soporte',
   nuevo: () => ({ fecha_apertura: hoyIso(), estatus: 'Abierto', tipo: 'Soporte', responsable: usuario() }),
-  campos: () => [
-    { c: 'cliente_id', l: 'Cliente', t: 'opciones', op: opClientes, req: true },
+  campos: r => [
+    { c: 'cliente_id', l: 'Cliente', t: 'opciones', op: opClientes, req: true, ro: r && r.estatus === 'Por asignar' },
     { c: 'tipo', l: 'Tipo', t: 'opciones', op: ['Soporte', 'Garantía'], req: true, ancho: 'medio' },
     { c: 'equipo_serie', l: 'Equipo (serie)', t: 'opciones', op: () => opEquipos(), ancho: 'medio' },
     { c: 'descripcion', l: 'Descripción del problema', t: 'area', req: true, filas: 3 },
     { c: 'responsable', l: 'Responsable', t: 'opciones', op: () => opUsuarios(['Técnico', 'Dirección']), ancho: 'medio' },
-    { c: 'estatus', l: 'Estatus', t: 'opciones', op: ['Abierto', 'En proceso', 'Cerrado'], ancho: 'medio' },
+    { c: 'estatus', l: 'Estatus', t: 'opciones', op: r && r.estatus === 'Por asignar' ? ['Por asignar', 'Abierto', 'En proceso', 'Cerrado'] : ['Abierto', 'En proceso', 'Cerrado'], ancho: 'medio',
+      ro: !!(r && r.estatus === 'Por asignar' && !esDir()), ayuda: r && r.estatus === 'Por asignar' ? 'Llegó del portal: Dirección lo asigna.' : null },
     { c: 'fecha_apertura', l: 'Apertura', t: 'fecha', ancho: 'medio' }, { c: 'fecha_cierre', l: 'Cierre', t: 'fecha', ancho: 'medio' },
     { c: 'solucion', l: 'Solución', t: 'area', filas: 3, validar: (v, o) => (o.estatus === 'Cerrado' && !v ? 'Describa la solución para cerrar el ticket.' : '') }
   ],
-  antesDeGuardar: reg => { if (reg.estatus === 'Cerrado' && !reg.fecha_cierre) reg.fecha_cierre = hoyIso(); return reg; },
+  antesDeGuardar: (reg, previo) => {
+    if (previo && previo.estatus === 'Por asignar' && reg.estatus && reg.estatus !== 'Por asignar' && !reg.responsable) return 'Elija el responsable para asignar el ticket.';
+    if (reg.estatus === 'Cerrado' && !reg.fecha_cierre) reg.fecha_cierre = hoyIso(); return reg;
+  },
+  acciones: r => [esDir() && r.estatus === 'Por asignar' ? boton('Asignar', { tipo: 'aprobar', ic: 'usuarios', onclick: () => asignarTicket(r) }) : null],
+  extrasDetalle: async (r, cuerpo) => {
+    const prog = barraProgreso(r.progreso, { titulo: 'Progreso del ticket (el cliente ve lo mismo)' }); if (prog) cuerpo.prepend(prog);
+    if (r.estatus === 'Por asignar') cuerpo.prepend(alerta('advertencia', 'Ticket abierto por el cliente desde su portal', esDir() ? 'Asígnelo a un responsable; el cliente verá a quién se asignó.' : 'Dirección lo asignará a un responsable.'));
+    const fotos = json(r.fotos);
+    if (fotos.length) cuerpo.append(h('section.pila', h('h2.titulo-seccion', 'Fotos del cliente'), h('div.fila', fotos.map((u, i) => enlace(u, 'Foto ' + (i + 1))))));
+  },
   columnas: [{ l: 'Folio', v: r => r.folio || 'Sin folio aún', clase: 'clave' }, { l: 'Cliente', v: r => h('span', h('strong', nombreCliente(r.cliente_id)), h('span.sub', r.descripcion || '')) }, { l: 'Tipo', v: r => r.tipo }, { l: 'Equipo', v: r => r.equipo_serie || '—' }, { l: 'Apertura', v: r => fecha(r.fecha_apertura) }, { l: 'Estatus', v: r => chip(r.estatus) }],
   movil: { titulo: r => (r.folio || 'Ticket') + ' · ' + nombreCliente(r.cliente_id), chip: r => chip(r.estatus), meta: r => [r.tipo, r.equipo_serie, fecha(r.fecha_apertura)] },
   texto: r => [r.folio, nombreCliente(r.cliente_id), r.descripcion, r.equipo_serie].join(' '),
-  filtros: [{ t: 'Abiertos', f: r => r.estatus !== 'Cerrado' }, { t: 'Garantías', f: r => r.tipo === 'Garantía' }], filtroInicial: 0,
+  filtros: [{ t: 'Abiertos', f: r => r.estatus !== 'Cerrado' }, { t: 'Por asignar', f: r => r.estatus === 'Por asignar' }, { t: 'Garantías', f: r => r.tipo === 'Garantía' }], filtroInicial: 0,
   orden: (a, b) => String(b.fecha_apertura).localeCompare(String(a.fecha_apertura)), tituloDe: r => r.folio || 'Ticket', subDe: r => nombreCliente(r.cliente_id)
 };
+
+function asignarTicket(t) {
+  const f = formulario([{ c: 'responsable', l: 'Responsable', t: 'opciones', op: () => opUsuarios(['Técnico', 'Piloto', 'Agronomía', 'Dirección']), req: true }],
+    { responsable: (cat('Usuarios').find(u => u.rol === 'Técnico') || {}).usuario || '' }, { columnas: false });
+  modal({ titulo: 'Asignar ' + (t.folio || 'ticket'), cuerpo: h('div.pila', h('p', 'El ticket pasa a Abierto con el responsable que elija. El cliente lo verá en su portal.'), f.el),
+    acciones: [{ texto: 'Cancelar', tipo: 'fantasma', valor: null }, { texto: 'Asignar', tipo: 'aprobar', icono: 'check', fn: async () => {
+      if (!f.validar()) return false;
+      try { await datos.guardar('Tickets', { id: t.id, responsable: f.leer().responsable, estatus: 'Abierto' }, { version: t.actualizado_en, resumen: 'Asignación de ' + (t.folio || 'ticket') }); }
+      catch (e) { toast(errorTexto(e), 'error'); return false; }
+      toast('Ticket asignado' + (navigator.onLine ? '' : ' en este teléfono · se subirá al haber señal')); recargar(); return true;
+    } }] });
+}
 
 // ---------- Capacitaciones ----------
 let archivoConstancia = null;

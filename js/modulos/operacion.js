@@ -6,7 +6,7 @@ import { rutasCrud, renderLista, botonNuevo, mostrar } from '../crud.js';
 import * as datos from '../datos.js';
 import { esDir, puede, cat, rol, usuario, nombreUsuario, param } from '../estado.js';
 import { ir } from '../router.js';
-import { opSkus, skuInfo, opEquipos, opUsuarios, opProveedores, ubicaciones } from './comunes.js';
+import { opSkus, skuInfo, opEquipos, opUsuarios, opProveedores, ubicaciones, opClientes, nombreCliente } from './comunes.js';
 
 const TIPOS_EQUIPO = ['Dron', 'Batería', 'Cargador', 'Generador', 'Sistema de esparcido', 'Control'];
 const ESTATUS_EQUIPO = ['Disponible', 'En servicio', 'Rentado', 'En mantenimiento', 'Vendido', 'Baja'];
@@ -19,7 +19,8 @@ export const cfgEquipos = {
     { c: 'serie', l: 'Número de serie', t: 'texto', req: true, ancho: 'medio' },
     { c: 'sku', l: 'SKU', t: 'opciones', op: () => opSkus(), ancho: 'medio' },
     { c: 'tipo', l: 'Tipo', t: 'opciones', op: TIPOS_EQUIPO, req: true, ancho: 'medio' },
-    { c: 'propiedad', l: 'Propiedad', t: 'opciones', op: ['Flota propia', 'Mercancía para venta'], req: true, ancho: 'medio' },
+    { c: 'propiedad', l: 'Propiedad', t: 'opciones', op: ['Flota propia', 'Mercancía para venta', 'Del cliente'], req: true, ancho: 'medio', ayuda: 'Del cliente: dron que le damos mantenimiento; no entra a la flota ni a las rentas.' },
+    { c: 'cliente_id', l: 'Cliente dueño', t: 'opciones', op: opClientes, ancho: 'medio', validar: (v, o) => (o.propiedad === 'Del cliente' && !v ? 'Indique el cliente dueño del equipo.' : '') },
     { c: 'estatus', l: 'Estatus', t: 'opciones', op: ESTATUS_EQUIPO, def: 'Disponible', ancho: 'medio' },
     { c: 'ubicacion', l: 'Ubicación', t: 'texto', def: UBIC_DEFECTO, ancho: 'medio' },
     { c: 'fecha_alta', l: 'Fecha de alta', t: 'fecha', ancho: 'medio' },
@@ -32,15 +33,16 @@ export const cfgEquipos = {
   calculados: [{ c: 'vuelos_desde_mant', l: 'Vuelos desde el mantenimiento', t: 'numero' }, { c: 'horas_desde_mant', l: 'Horas desde el mantenimiento', t: 'numero', suf: 'h' }, { c: 'alerta_mant', l: 'Alerta de mantenimiento', t: 'bool' }],
   columnas: [
     { l: 'Serie', v: r => r.serie, clase: 'clave' }, { l: 'Equipo', v: r => h('span', h('strong', r.tipo || '—'), h('span.sub', (skuInfo(r.sku) || {}).descripcion || r.sku || '')) },
-    { l: 'Propiedad', v: r => r.propiedad || '—' }, { l: 'Ubicación', v: r => r.ubicacion || '—' },
+    { l: 'Propiedad', v: r => (r.propiedad === 'Del cliente' ? h('span', 'Del cliente', h('span.sub', nombreCliente(r.cliente_id))) : r.propiedad || '—') }, { l: 'Ubicación', v: r => r.ubicacion || '—' },
     { l: 'Uso desde mant.', v: r => (r.tipo === 'Dron' ? `${numero(r.vuelos_desde_mant || 0)} vuelos · ${numero(r.horas_desde_mant || 0)} h` : r.tipo === 'Batería' ? `${numero(r.ciclos || 0)} ciclos` : '—'), num: true },
     { l: 'Estatus', v: r => h('span.fila', { style: { gap: '6px' } }, chip(r.estatus), r.alerta_mant === true ? chip('Mantenimiento', 'rechazado') : null) }
   ],
-  movil: { titulo: r => `${r.tipo || 'Equipo'} · ${r.serie}`, chip: r => (r.alerta_mant === true ? chip('Mantenimiento', 'rechazado') : chip(r.estatus)), meta: r => [r.propiedad, r.tipo === 'Dron' ? `${numero(r.vuelos_desde_mant || 0)} vuelos desde mant.` : null, r.ubicacion] },
+  movil: { titulo: r => `${r.tipo || 'Equipo'} · ${r.serie}`, chip: r => (r.alerta_mant === true ? chip('Mantenimiento', 'rechazado') : chip(r.estatus)), meta: r => [r.propiedad === 'Del cliente' ? 'De ' + nombreCliente(r.cliente_id) : r.propiedad, r.tipo === 'Dron' ? `${numero(r.vuelos_desde_mant || 0)} vuelos desde mant.` : null, r.ubicacion] },
   texto: r => [r.serie, r.sku, r.tipo, r.ubicacion, r.estatus, (skuInfo(r.sku) || {}).descripcion].join(' '),
-  filtros: [{ t: 'Flota propia', f: r => r.propiedad === 'Flota propia' }, { t: 'Para venta', f: r => r.propiedad === 'Mercancía para venta' }, { t: 'Con alerta de mantenimiento', f: r => r.alerta_mant === true }],
+  filtros: [{ t: 'Flota propia', f: r => r.propiedad === 'Flota propia' }, { t: 'Para venta', f: r => r.propiedad === 'Mercancía para venta' }, { t: 'De clientes', f: r => r.propiedad === 'Del cliente' }, { t: 'Con alerta de mantenimiento', f: r => r.alerta_mant === true }],
   orden: (a, b) => (b.alerta_mant === true) - (a.alerta_mant === true) || String(a.tipo).localeCompare(b.tipo) || String(a.serie).localeCompare(b.serie),
-  tituloDe: r => `${r.tipo || 'Equipo'} ${r.serie}`, subDe: r => (skuInfo(r.sku) || {}).descripcion || r.sku,
+  tituloDe: r => `${r.tipo || 'Equipo'} ${r.serie}`, subDe: r => (r.propiedad === 'Del cliente' ? 'Del cliente ' + nombreCliente(r.cliente_id) + ' · ' : '') + ((skuInfo(r.sku) || {}).descripcion || r.sku || ''),
+  antesDeGuardar: reg => { if (reg.propiedad !== 'Del cliente') reg.cliente_id = ''; return reg; },
   acciones: r => [puede('Mantenimientos', 'escribir') ? boton('Registrar mantenimiento', { ic: 'herramienta', href: '#/mantenimientos/nuevo?equipo_serie=' + encodeURIComponent(r.serie) }) : null],
   extrasDetalle: async (r, cuerpo) => {
     if (r.alerta_mant === true) cuerpo.prepend(alerta('error', 'Mantenimiento por realizar', `Llegó al umbral de ${num((skuInfo(r.sku) || {}).umbral_mant_vuelos) || param('umbral_mant_vuelos', 100)} vuelos o ${num((skuInfo(r.sku) || {}).umbral_mant_horas) || param('umbral_mant_horas', 20)} h desde el último mantenimiento.`));

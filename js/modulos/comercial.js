@@ -6,6 +6,7 @@ import * as datos from '../datos.js';
 import { esDir, puede, cat, param, usuario, rol } from '../estado.js';
 import { formulario } from '../forms.js';
 import { ir } from '../router.js';
+import { seccionAcceso } from './portal.js';
 import { ESTADOS, opClientes, nombreCliente, opParcelas, nombreParcela, opUsuarios, botonGPS, opProveedores, usuarioNombre, vincularParcelas } from './comunes.js';
 
 export const TIPOS_OPORTUNIDAD = ['Venta de dron', 'Servicio de aplicación', 'Renta', 'Refacciones', 'Monitoreo y mapeo', 'Capacitación y soporte'];
@@ -52,6 +53,14 @@ export const cfgClientes = {
         puede('Oportunidades', 'escribir') ? boton('Nueva oportunidad', { tipo: 'secundario', ic: 'mas', chico: true, href: '#/oportunidades/nuevo?cliente_id=' + r.id }) : null), z));
       await renderLista(z, cfgOportunidades, { filtro: o => o.cliente_id === r.id, sinBoton: true });
     }
+    const equipos = cat('Equipos').filter(e => e.cliente_id === r.id);
+    if (equipos.length || puede('Equipos', 'escribir')) {
+      cuerpo.append(h('section.pila', h('div.fila.encabezado-seccion', h('h2.titulo-seccion', 'Equipos del cliente'),
+        puede('Equipos', 'escribir') ? boton('Registrar equipo', { tipo: 'secundario', ic: 'mas', chico: true, href: '#/equipos/nuevo?propiedad=' + encodeURIComponent('Del cliente') + '&cliente_id=' + r.id }) : null),
+        equipos.length ? h('div.lista-registros', equipos.map(e => h('a.registro', { href: '#/equipos/' + e.id }, h('span.registro__titulo', `${e.tipo || 'Equipo'} · ${e.serie}`), h('span.registro__estado', chip(e.propiedad === 'Del cliente' ? 'Del cliente' : e.estatus, 'neutro')), h('span.registro__meta', h('span', e.sku || ''), h('span', e.ultimo_mantenimiento ? 'Último mantenimiento ' + fecha(e.ultimo_mantenimiento) : 'Sin mantenimientos'))))) 
+          : h('p.texto-suave', 'Registre aquí los drones del cliente a los que les damos mantenimiento. No entran a la flota ni a las rentas.')));
+    }
+    await seccionAcceso(r, cuerpo);
   }
 };
 

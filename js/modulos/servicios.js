@@ -7,14 +7,26 @@ import * as datos from '../datos.js';
 import { esDir, puede, cat, rol, usuario, nombreUsuario, alcance } from '../estado.js';
 import { ir } from '../router.js';
 import { opClientes, nombreCliente, opParcelas, nombreParcela, opUsuarios, opEquipos, botonGPS, selectorFotos, capturaFirma, miniaturasPendientes, enlace } from './comunes.js';
+import { barraProgreso, progresoMini } from '../progreso.js';
 
 const ABIERTAS = ['Programada', 'Pendiente de aprobación', 'Confirmada', 'En ejecución', 'Pausada'];
 const esTec = () => rol() === 'Técnico' || rol() === 'Piloto'; // personal de campo: solo órdenes asignadas
 
 // ================= Órdenes de servicio =================
+// Oportunidades del cliente para ligar la OS (opcional): así la barra de progreso muestra la solicitud y la cotización aceptada.
+let oportunidades = [];
+async function cargarOportunidades() {
+  if (!puede('Oportunidades')) { oportunidades = []; return; }
+  try { oportunidades = (await datos.listar('Oportunidades')).registros; } catch (e) { oportunidades = []; }
+}
+const opOportunidades = clienteId => oportunidades.filter(o => o.cliente_id === clienteId && o.etapa !== 'Perdida')
+  .map(o => ({ v: o.id, l: [o.tipo, o.etapa, o.monto ? dinero(o.monto) : ''].filter(Boolean).join(' · ') }));
+
 function camposOS(r) {
   return [
     { c: 'cliente_id', l: 'Cliente', t: 'opciones', op: opClientes, req: true },
+    puede('Oportunidades') ? { c: 'oportunidad_id', l: 'Oportunidad ligada', t: 'opciones', op: () => opOportunidades(r && r.cliente_id), ph: 'Sin ligar',
+      ayuda: 'Opcional. Liga la orden con la solicitud y la cotización del cliente para que su progreso las muestre.' } : null,
     { c: 'parcelas', l: 'Parcelas del servicio', t: 'multi', op: () => opParcelas(r && r.cliente_id), vacio: 'Guarde primero el cliente o registre sus parcelas en CRM.' },
     { c: 'cultivo', l: 'Cultivo', t: 'texto', ancho: 'medio' },
     { c: 'tipo_servicio', l: 'Tipo de servicio', t: 'texto', ancho: 'medio', ph: 'p. ej. aspersión de fungicida' },
@@ -25,7 +37,7 @@ function camposOS(r) {
     { c: 'agronomo', l: 'Agrónomo responsable', t: 'opciones', op: () => opUsuarios(['Agronomía', 'Dirección']), ancho: 'medio' },
     { c: 'tecnicos', l: 'Técnicos y pilotos asignados', t: 'multi', op: () => opUsuarios(['Técnico', 'Piloto']), vacio: 'Aún no hay técnicos ni pilotos dados de alta.' },
     { c: 'resumen_general', l: 'Resumen general', t: 'area', ayuda: 'Notas del servicio completo (objetivo, condiciones, acuerdos).' }
-  ];
+  ].filter(Boolean);
 }
 
 async function listaOS(c) {
@@ -42,7 +54,7 @@ async function listaOS(c) {
       { l: 'Cliente', v: r => h('span', h('strong', nombreCliente(r.cliente_id)), h('span.sub', [r.cultivo, r.tipo_servicio].filter(Boolean).join(' · '))) },
       { l: 'Plan', v: r => r.fecha_inicio_plan ? fecha(r.fecha_inicio_plan) + ' – ' + fecha(r.fecha_fin_plan) : '—' },
       { l: 'Hectáreas', v: r => `${numero(r.ha_aplicadas || 0)} / ${numero(r.ha_contratadas)}`, num: true },
-      { l: 'Avance', v: r => pct(r.avance_pct || 0), num: true },
+      { l: 'Progreso', v: r => progresoMini(r.progreso) || pct(r.avance_pct || 0) },
       { l: 'Técnicos', v: r => json(r.tecnicos).map(nombreUsuario).join(', ') || '—' },
       { l: 'Estatus', v: r => chip(r.estatus || 'Programada') }
     ],
@@ -60,12 +72,13 @@ async function formOS(c, { id }, q, borrador) {
   let r = null;
   if (id) { try { r = await datos.obtener('OrdenesServicio', id); } catch (e) { pantalla(c, { titulo: 'Orden de servicio', volver: 'os' }).append(alerta('error', 'No se pudo abrir', errorTexto(e))); return; } }
   const base = borrador || r || Object.assign({}, q);
+  if (!borrador) await cargarOportunidades();
   const cuerpo = pantalla(c, { titulo: id ? 'Editar ' + ((r && r.folio) || 'orden') : 'Nueva orden de servicio', volver: id ? 'os/' + id : 'os' });
   cuerpo.classList.add('no-refrescar');
   const f = formulario(camposOS(base), base);
   // Al cambiar de cliente cambian las parcelas disponibles: se vuelve a dibujar el formulario conservando lo capturado.
   const cl = f.campo('cliente_id');
-  cl.control.addEventListener('change', () => formOS(c, { id }, q, Object.assign({}, base, f.leer(), { cliente_id: cl.control.value, parcelas: [] })));
+  cl.control.addEventListener('change', () => formOS(c, { id }, q, Object.assign({}, base, f.leer(), { cliente_id: cl.control.value, parcelas: [], oportunidad_id: '' })));
   const guardar = boton('Guardar orden', { ic: 'check' });
   cuerpo.append(h('form.tarjeta.pila', { novalidate: true, onsubmit: e => e.preventDefault() }, f.el), h('div.barra-acciones', boton('Cancelar', { tipo: 'fantasma', href: '#/' + (id ? 'os/' + id : 'os') }), guardar));
   guardar.addEventListener('click', async () => {
@@ -85,6 +98,7 @@ async function detalleOS(c, { id }, q) {
   let r;
   try { r = await datos.obtener('OrdenesServicio', id); } catch (e) { vaciar(cu).append(alerta('error', 'No se pudo abrir la orden', errorTexto(e))); return; }
   if (!r) { vaciar(cu).append(alerta('advertencia', 'Orden no disponible', 'No está guardada en este teléfono. Conéctese para consultarla.')); return; }
+  if (r.oportunidad_id) await cargarOportunidades();
   const est = r.estatus || 'Programada';
   const etapas = r.etapas || [];
   const acc = [];
@@ -104,6 +118,7 @@ async function detalleOS(c, { id }, q) {
     chip: r._pendiente ? chipPendiente() : chip(est), acciones: acc });
   const av = avisoCache(r._desdeCache); if (av) cuerpo.append(av);
   if (est === 'Pendiente de aprobación') cuerpo.append(alerta('info', 'En espera de aprobación de Dirección', 'Toca clientes: se confirma antes de ejecutarse.'));
+  const prog = barraProgreso(r.progreso, { titulo: 'Progreso del servicio (el cliente ve lo mismo)' }); if (prog) cuerpo.append(prog);
   const tab = q.vista || 'resumen';
   const zona = h('div.pila');
   cuerpo.append(pestanas([{ id: 'resumen', t: 'Resumen general' }, { id: 'etapas', t: 'Etapas', badge: etapas.length }, { id: 'evidencias', t: 'Evidencias' }, { id: 'insumos', t: 'Insumos' }], tab,
@@ -199,8 +214,9 @@ async function formEtapa(c, { id, eid }) {
   cuerpo.classList.add('no-refrescar');
   if (!navigator.onLine) cuerpo.append(alerta('info', 'Está sin conexión', 'Todo se guarda en este teléfono, incluidas fotos y firma, y se sube solo al recuperar la señal.'));
   const opParc = parcelasOS.length ? parcelasOS.map(p => ({ v: p, l: nombreParcela(p) })) : opParcelas(os.cliente_id);
-  const drones = opEquipos(e => e.tipo === 'Dron' && e.propiedad !== 'Mercancía para venta');
-  const baterias = opEquipos(e => e.tipo === 'Batería' && e.propiedad !== 'Mercancía para venta');
+  const flota = e => !['Mercancía para venta', 'Del cliente'].includes(e.propiedad);
+  const drones = opEquipos(e => e.tipo === 'Dron' && flota(e));
+  const baterias = opEquipos(e => e.tipo === 'Batería' && flota(e));
   const f1 = formulario([
     { c: 'numero', l: 'Número de etapa', t: 'numero', req: true, ancho: 'medio', min: 1 },
     { c: 'nombre', l: 'Nombre o lote', t: 'texto', ancho: 'medio', ph: 'p. ej. Lote norte' },
@@ -261,7 +277,7 @@ const cfgRentas = {
   tabla: 'Rentas', ruta: 'rentas', titulo: 'Rentas', singular: 'renta', singularMayus: 'Renta', femenino: true, icono: 'llave',
   campos: r => [
     { c: 'cliente_id', l: 'Cliente', t: 'opciones', op: opClientes, req: true },
-    { c: 'equipos', l: 'Equipos a rentar', t: 'multi', op: () => opEquipos(e => e.propiedad !== 'Mercancía para venta' && (e.estatus === 'Disponible' || json(r && r.equipos).includes(e.serie))), req: true, vacio: 'No hay equipos de flota disponibles.' },
+    { c: 'equipos', l: 'Equipos a rentar', t: 'multi', op: () => opEquipos(e => !['Mercancía para venta', 'Del cliente'].includes(e.propiedad) && (e.estatus === 'Disponible' || json(r && r.equipos).includes(e.serie))), req: true, vacio: 'No hay equipos de flota disponibles.' },
     { c: 'inicio', l: 'Inicio', t: 'fechahora', req: true, ancho: 'medio' },
     { c: 'fin', l: 'Fin', t: 'fechahora', req: true, ancho: 'medio', validar: (v, o) => (v && o.inicio && v <= o.inicio ? 'El fin debe ser posterior al inicio.' : '') },
     { c: 'tarifa', l: 'Tarifa sin IVA', t: 'dinero', req: true, ancho: 'medio' },
@@ -292,6 +308,7 @@ const cfgRentas = {
     return a;
   },
   extrasDetalle: async (r, cuerpo) => {
+    const prog = barraProgreso(r.progreso, { titulo: 'Progreso de la renta (el cliente ve lo mismo)' }); if (prog) cuerpo.prepend(prog);
     if (puede('Rentas', 'escribir') && !r.contrato_url) {
       const inp = h('input', { type: 'file', accept: 'application/pdf,image/*', hidden: true });
       inp.addEventListener('change', async () => {

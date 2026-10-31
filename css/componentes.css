@@ -351,3 +351,40 @@
   .acceso__horizonte { width: min(440px, 80%); }
   .acceso__hoja { border-radius: 0; display: grid; align-content: center; padding: var(--e-12); }
 }
+
+/* ================= Progreso con pasos (OS, tickets, rentas, solicitudes · idéntico en el portal) ================= */
+.progreso { display: grid; gap: var(--e-3); padding: var(--e-5) var(--e-4); background: var(--superficie); border: 1px solid var(--avx-linea); border-radius: var(--r-tarjeta); }
+.progreso__encabezado { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--e-3); }
+.progreso__titulo { font-size: var(--t-sm); font-weight: 700; color: var(--texto-suave); font-family: var(--fuente-texto); margin: 0; }
+.progreso__estado { font-family: var(--fuente-titulos); font-weight: 700; font-size: var(--t-lg); color: var(--avx-marino); line-height: var(--interlineado-titulos); margin: 2px 0 0; }
+.progreso__pct { font-family: var(--fuente-titulos); font-weight: 700; font-size: var(--t-xl); color: var(--avx-marino); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.progreso__barra { height: 6px; background: var(--avx-niebla); border-radius: 3px; overflow: hidden; }
+.progreso__barra > span { display: block; height: 100%; background: var(--avx-marino); border-right: 3px solid var(--avx-rojo); transition: width .4s ease; }
+.progreso--concluido .progreso__barra > span { border-right: 0; }
+.progreso--cancelado .progreso__barra > span { background: var(--avx-grafito-claro); border-right: 0; }
+.progreso--cancelado .progreso__estado, .progreso--cancelado .progreso__pct { color: var(--avx-grafito); }
+.progreso__detalle { margin: 0; color: var(--texto-suave); font-size: var(--t-sm); }
+.progreso__pasos { list-style: none; margin: var(--e-2) 0 0; padding: 0; display: grid; }
+.progreso__paso { position: relative; display: grid; grid-template-columns: 24px 1fr; gap: var(--e-3); padding-bottom: var(--e-4); }
+.progreso__paso:last-child { padding-bottom: 0; }
+.progreso__paso::before { content: ""; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: var(--avx-linea); }
+.progreso__paso:last-child::before { display: none; }
+.progreso__paso--hecho::before { background: var(--avx-marino); }
+.progreso__marca { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--superficie); border: 2px solid var(--avx-borde-campo); color: var(--avx-blanco); box-sizing: border-box; }
+.progreso__paso--hecho .progreso__marca { background: var(--avx-marino); border-color: var(--avx-marino); }
+.progreso__paso--actual .progreso__marca { border: 6px solid var(--avx-rojo); }
+.progreso__paso--cancelado .progreso__marca { background: var(--avx-grafito); border-color: var(--avx-grafito); }
+.progreso__texto { display: grid; gap: 2px; min-width: 0; padding-top: 1px; }
+.progreso__nombre { font-weight: 700; color: var(--texto); }
+.progreso__paso--pendiente .progreso__nombre { font-weight: 400; color: var(--texto-suave); }
+.progreso__paso--actual .progreso__nombre { color: var(--avx-marino); }
+.progreso__meta { font-size: var(--t-sm); color: var(--texto-suave); overflow-wrap: anywhere; }
+.progreso-mini { display: grid; gap: 4px; min-width: 96px; }
+.progreso-mini__barra { display: block; height: 4px; background: var(--avx-niebla); border-radius: 2px; overflow: hidden; }
+.progreso-mini__barra > span { display: block; height: 100%; background: var(--avx-marino); }
+.progreso-mini--cancelado .progreso-mini__barra > span { background: var(--avx-grafito-claro); }
+.progreso-mini__texto { font-size: var(--t-sm); color: var(--texto-suave); }
+@media (prefers-reduced-motion: reduce) { .progreso__barra > span { transition: none; } }
+
+/* ================= Accesos al portal (Clientes) ================= */
+.clave-temporal { display: flex; align-items: center; justify-content: space-between; gap: var(--e-3); padding: var(--e-3) var(--e-4); background: var(--avx-niebla); border: 1px dashed var(--avx-borde-campo); border-radius: var(--r-campo); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: var(--t-md); letter-spacing: .04em; color: var(--avx-marino); overflow-wrap: anywhere; }

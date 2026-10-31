@@ -101,9 +101,9 @@ export const json = v => { if (Array.isArray(v)) return v; if (vacioV(v)) return
 // ---------- Estatus → chip ----------
 const TONOS = {
   neutro: ['Borrador', 'Requisición', 'Programada', 'Prospecto', 'Pendiente', 'Inactivo', 'Sin factura', 'Baja', 'Vendido', 'Informativo', 'Sin datos', 'Definir meta', 'Manual'],
-  pendiente: ['Pendiente de aprobación', 'Por revisar', 'Por facturar', 'Reponer', 'En mantenimiento', 'Pausada', 'Negociación', 'Bloqueado', 'Abierto', 'Ámbar', 'Atención'],
+  pendiente: ['Pendiente de aprobación', 'Por revisar', 'Por facturar', 'Reponer', 'En mantenimiento', 'Pausada', 'Negociación', 'Bloqueado', 'Abierto', 'Ámbar', 'Atención', 'Por asignar', 'Cambios solicitados'],
   aprobado: ['Aprobada', 'Aprobado', 'Aceptada', 'Confirmada', 'Recibida', 'Terminada', 'Hecho', 'Ganada', 'Activo', 'Vigente', 'Disponible', 'OK', 'Facturada', 'Cerrado', 'Completa', 'Devuelta', 'Cerrada', 'Verde', 'Capturado', 'Sí', 'SmartFarm'],
-  proceso: ['En ejecución', 'En proceso', 'Enviada', 'Entregada', 'Rentado', 'En servicio', 'Cotizado', 'En curso', 'OC'],
+  proceso: ['En ejecución', 'En proceso', 'Enviada', 'Entregada', 'Rentado', 'En servicio', 'Cotizado', 'En curso', 'OC', 'En revisión'],
   rechazado: ['Rechazada', 'Rechazado', 'Perdida', 'Cancelada', 'Vencida', 'Sin existencia', 'Rojo', 'Error', 'Fuera de rango', 'No']
 };
 export function tono(estatus) {

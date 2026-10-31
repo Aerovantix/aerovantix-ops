@@ -1,5 +1,5 @@
 // Cotizaciones: editor con partidas (paquetes desglosados por componente), envío a aprobación y vista previa fiel a la plantilla oficial.
-import { h, icono, vaciar, toast, dinero, pct, numero, chip, boton, alerta, esqueleto, errorTexto, fecha, json, vacioV, num, hoyIso, sumarDiasIso, confirmar, chipPendiente } from '../ui.js';
+import { h, icono, vaciar, toast, dinero, pct, numero, chip, boton, alerta, esqueleto, errorTexto, fecha, fechaHora, json, vacioV, num, hoyIso, sumarDiasIso, confirmar, chipPendiente } from '../ui.js';
 import { formulario } from '../forms.js';
 import { pantalla, listado, avisoCache } from '../vistas.js';
 import * as datos from '../datos.js';
@@ -80,9 +80,9 @@ async function pantallaLista(c) {
       { l: 'Emisión', v: r => fecha(r.fecha_emision) },
       { l: 'Vigente hasta', v: r => h('span', { style: r.vigente_hasta && r.vigente_hasta < hoy && ['Aprobada', 'Enviada'].includes(r.estatus) ? { color: 'var(--avx-error)', fontWeight: 700 } : null }, fecha(r.vigente_hasta)) },
       { l: 'Total con IVA', v: r => dinero(r.total), num: true },
-      { l: 'Estatus', v: r => chip(r.estatus || 'Borrador') }
+      { l: 'Estatus', v: r => h('span.fila', { style: { gap: '6px' } }, chip(r.estatus || 'Borrador'), r.estatus === 'Enviada' && r.respuesta_cliente ? chip('Cliente: ' + r.respuesta_cliente.toLowerCase(), 'pendiente') : null) }
     ],
-    movil: { titulo: r => (r.folio || 'Borrador') + ' · ' + nombreCliente(r.cliente_id), chip: r => chip(r.estatus || 'Borrador'), meta: r => [dinero(r.total), 'Vigencia ' + fecha(r.vigente_hasta)] },
+    movil: { titulo: r => (r.folio || 'Borrador') + ' · ' + nombreCliente(r.cliente_id), chip: r => (r.estatus === 'Enviada' && r.respuesta_cliente ? chip('Cliente: ' + r.respuesta_cliente.toLowerCase(), 'pendiente') : chip(r.estatus || 'Borrador')), meta: r => [dinero(r.total), 'Vigencia ' + fecha(r.vigente_hasta)] },
     texto: r => [r.folio, nombreCliente(r.cliente_id), r.cultivo, r.estatus].join(' '),
     filtros: [{ t: 'Borradores', f: r => r.estatus === 'Borrador' }, { t: 'Por aprobar', f: r => r.estatus === 'Pendiente de aprobación' }, { t: 'Aprobadas y enviadas', f: r => ['Aprobada', 'Enviada'].includes(r.estatus) }, { t: 'Aceptadas', f: r => r.estatus === 'Aceptada' }],
     orden: (a, b) => String(b.fecha_emision || '').localeCompare(String(a.fecha_emision || '')) || String(b.folio || '').localeCompare(String(a.folio || '')),
@@ -286,6 +286,14 @@ async function detalle(c, { id }) {
   const av = avisoCache(r._desdeCache); if (av) cuerpo.append(av);
   if (est === 'Pendiente de aprobación') cuerpo.append(alerta('info', 'En espera de aprobación de Dirección', 'Al aprobarse se asigna el PDF oficial. No se envía nada al cliente automáticamente.'));
   if (r._pendiente) cuerpo.append(alerta('advertencia', 'Cambios por subir', 'El folio y los totales definitivos los asigna el sistema al sincronizar.'));
+  if (r.respuesta_cliente && est === 'Enviada') {
+    const acepto = r.respuesta_cliente === 'Aceptada';
+    cuerpo.append(alerta(acepto ? 'exito' : 'advertencia', acepto ? 'El cliente la aceptó desde su portal' : 'El cliente pidió cambios desde su portal',
+      [r.fecha_respuesta_cliente ? fechaHora(r.fecha_respuesta_cliente) : '', r.comentario_cliente ? '«' + r.comentario_cliente + '»' : ''].filter(Boolean).join(' · ') +
+      (acepto ? (esDir() ? ' Confírmelo con «Cliente la aceptó» para ganar la oportunidad.' : ' Dirección lo confirmará.') : ' Prepare una cotización actualizada.')));
+  } else if (r.respuesta_cliente === 'Cambios solicitados' && r.comentario_cliente) {
+    cuerpo.append(alerta('info', 'Cambios que pidió el cliente', '«' + r.comentario_cliente + '»'));
+  }
   cuerpo.append(h('div.rejilla--2',
     h('div.panel-datos', h('div.panel-datos__titulo', 'Cliente'), h('dl.datos', h('dt', 'Nombre'), h('dd', nombreCliente(r.cliente_id)), h('dt', 'Contacto'), h('dd', r.contacto || '—'), h('dt', 'Emisión'), h('dd', fecha(r.fecha_emision)), h('dt', 'Forma de pago'), h('dd', r.forma_pago === 'Crédito' ? `Crédito a ${r.credito_dias} días` : (r.forma_pago || '—')))),
     h('div.panel-datos', h('div.panel-datos__titulo', 'Ubicación y alcance'), h('dl.datos', h('dt', 'Predio'), h('dd', [r.predio, r.municipio, r.estado].filter(Boolean).join(', ') || '—'), h('dt', 'Cultivo'), h('dd', r.cultivo || '—'), h('dt', 'Superficie'), h('dd', numero(r.superficie_ha, 'ha')), h('dt', 'Aplicaciones'), h('dd', [r.aplicaciones_numero, r.aplicaciones_tipo].filter(Boolean).join(' · ') || '—')))));

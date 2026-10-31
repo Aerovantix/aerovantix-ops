@@ -16,8 +16,9 @@ import { rutas as rServicios } from './modulos/servicios.js';
 import { rutas as rAdmin } from './modulos/administracion.js';
 import { rutas as rProcesos } from './modulos/procesos.js';
 import { rutas as rSistema, ayudaInstalacion } from './modulos/sistema.js';
+import { rutas as rPortal, PENDIENTES_SOL } from './modulos/portal.js';
 
-registrar([...rInicio, ...rComercial, ...rCotizaciones, ...rOperacion, ...rServicios, ...rAdmin, ...rProcesos, ...rSistema]);
+registrar([...rInicio, ...rComercial, ...rCotizaciones, ...rOperacion, ...rServicios, ...rAdmin, ...rProcesos, ...rSistema, ...rPortal]);
 
 // ---------- Menú ----------
 const MENU = [
@@ -27,6 +28,7 @@ const MENU = [
     { r: 'avisos', t: 'Avisos', i: 'aviso', ver: () => puede('Avisos'), badge: 'avisos' }] },
   { g: 'Comercial', items: [
     { r: 'crm', t: 'Clientes y oportunidades', i: 'clientes', ver: () => puede('Clientes') },
+    { r: 'solicitudes', t: 'Solicitudes de clientes', i: 'aviso', ver: () => esDir(), badge: 'solic' },
     { r: 'cotizaciones', t: 'Cotizaciones', i: 'cotizacion', ver: () => puede('Cotizaciones') },
     { r: 'catalogo', t: 'Catálogo', i: 'catalogo', ver: () => puede('Catalogo') }] },
   { g: 'Operación', items: [
@@ -61,7 +63,7 @@ const INFERIOR = {
 const CORTO = { inicio: 'Inicio', aprobaciones: 'Aprobar', os: 'Servicios', pendientes: 'Pendientes', crm: 'Clientes', flota: 'Flota', finanzas: 'Finanzas', avisos: 'Avisos', mas: 'Más' };
 
 const visibles = () => MENU.map(g => ({ g: g.g, items: g.items.filter(i => !i.ver || i.ver()) })).filter(g => g.items.length);
-const badges = { aprob: 0, avisos: 0, cola: 0 };
+const badges = { aprob: 0, avisos: 0, cola: 0, solic: 0 };
 
 // ---------- Estructura ----------
 let shell = null;
@@ -177,11 +179,13 @@ export async function actualizarBadges() {
   badges.avisos = est.avisos || 0;
   if (esDir() && navigator.onLine) {
     try { const r = await llamar('listar', { tabla: 'Aprobaciones', filtros: { estatus: 'Pendiente' } }); badges.aprob = r.registros.length; } catch (e) { /* sin acción */ }
+    try { const r = await llamar('listar', { tabla: 'Solicitudes' }); badges.solic = r.registros.filter(x => PENDIENTES_SOL.includes(x.estatus)).length; } catch (e) { /* sin acción */ }
   }
   if (shell) pintarMenu();
 }
 bus.on('avisos-cambio', n => { est.avisos = n; actualizarBadges(); });
 bus.on('aprobaciones-cambio', () => actualizarBadges());
+bus.on('solicitudes-cambio', () => actualizarBadges());
 
 // ---------- Enrutamiento ----------
 let renderId = 0;
