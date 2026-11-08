@@ -17,8 +17,9 @@ import { rutas as rAdmin } from './modulos/administracion.js';
 import { rutas as rProcesos } from './modulos/procesos.js';
 import { rutas as rSistema, ayudaInstalacion } from './modulos/sistema.js';
 import { rutas as rPortal, PENDIENTES_SOL } from './modulos/portal.js';
+import { rutas as rMezcla } from './modulos/mezcla.js';
 
-registrar([...rInicio, ...rComercial, ...rCotizaciones, ...rOperacion, ...rServicios, ...rAdmin, ...rProcesos, ...rSistema, ...rPortal]);
+registrar([...rInicio, ...rComercial, ...rCotizaciones, ...rOperacion, ...rServicios, ...rAdmin, ...rProcesos, ...rSistema, ...rPortal, ...rMezcla]);
 
 // ---------- Menú ----------
 const MENU = [
@@ -36,7 +37,8 @@ const MENU = [
     { r: 'rentas', t: 'Rentas', i: 'llave', ver: () => puede('Rentas') },
     { r: 'flota', t: 'Flota y mantenimiento', i: 'dron', ver: () => puede('Equipos') && (puede('Mantenimientos') || puede('Vuelos')) },
     { r: 'inventario', t: 'Inventario', i: 'inventario', ver: () => puede('Existencias') },
-    { r: 'compras', t: 'Compras', i: 'compras', ver: () => puede('Compras') }] },
+    { r: 'compras', t: 'Compras', i: 'compras', ver: () => puede('Compras') },
+    { r: 'mezcla', t: 'Calculadora de mezcla', i: 'herramienta', ver: () => rol() !== 'Socio' }] },
   { g: 'Administración', items: [
     { r: 'caja', t: 'Caja y finanzas', i: 'caja', ver: () => puede('Movimientos') },
     { r: 'finanzas', t: 'Finanzas', i: 'caja', ver: () => !puede('Movimientos') && puede('Finanzas') },

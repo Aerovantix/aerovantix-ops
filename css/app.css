@@ -209,3 +209,25 @@ a.kpi { color: inherit; text-decoration: none; display: block; }
   .doc-lienzo { transform: none !important; height: auto !important; width: auto !important; }
   .doc-cot { box-shadow: none; }
 }
+
+/* ---------- Calculadora de mezcla ---------- */
+.mezcla > * { min-width: 0; }
+.mezcla__kpis { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.mezcla__producto { display: grid; gap: var(--e-3); padding: var(--e-3); border: 1px solid var(--avx-linea); border-left: 4px solid var(--avx-marino); border-radius: var(--r-tarjeta); background: var(--superficie); }
+.mezcla__producto[data-tipo="foliar"], .mezcla__producto[data-tipo="bioestimulante"] { border-left-color: var(--avx-advertencia-marca); }
+.mezcla__producto[data-tipo="adyuvante"], .mezcla__producto[data-tipo="acondicionador"] { border-left-color: var(--avx-grafito); }
+.mezcla__producto-enc { flex-wrap: nowrap; align-items: flex-end; }
+.mezcla__calib summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 700; color: var(--avx-marino); }
+.mezcla__calib[open] summary { margin-bottom: var(--e-2); }
+.mezcla__unidad { flex: 0 0 auto; width: auto; border-left: 0; border-radius: 0 var(--r-campo) var(--r-campo) 0; }
+.entrada:has(+ .mezcla__unidad) { border-radius: var(--r-campo) 0 0 var(--r-campo); }
+.mezcla__pasos { counter-reset: paso; list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.mezcla__paso { counter-increment: paso; grid-template-columns: 32px minmax(0, 1fr); }
+.mezcla__paso .paso-sop__num::before { content: counter(paso); }
+.mezcla__paso-cuerpo { display: grid; gap: var(--e-1); min-width: 0; }
+.mezcla__paso-titulo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--e-2); }
+.mezcla__paso-titulo strong { overflow-wrap: anywhere; }
+.mezcla__cantidad { font-size: var(--t-lg); color: var(--avx-marino); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mezcla__meta { display: flex; flex-wrap: wrap; gap: 2px var(--e-3); font-size: var(--t-sm); color: var(--texto-suave); }
+.mezcla__ficha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--t-sm); }
+.mezcla .formulario { align-items: start; }

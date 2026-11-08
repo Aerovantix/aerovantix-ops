@@ -7,6 +7,7 @@ import * as datos from '../datos.js';
 import { esDir, puede, cat, rol, usuario, nombreUsuario, alcance } from '../estado.js';
 import { ir } from '../router.js';
 import { opClientes, nombreCliente, opParcelas, nombreParcela, opUsuarios, opEquipos, botonGPS, selectorFotos, capturaFirma, miniaturasPendientes, enlace } from './comunes.js';
+import { hrefMezclaOS } from './mezcla.js';
 import { barraProgreso, progresoMini } from '../progreso.js';
 
 const ABIERTAS = ['Programada', 'Pendiente de aprobación', 'Confirmada', 'En ejecución', 'Pausada'];
@@ -138,7 +139,8 @@ async function detalleOS(c, { id }, q) {
           h('dl.datos', { style: { marginTop: '12px' } }, h('dt', 'Firma de conformidad'), h('dd', r.firma_conformidad_url ? enlace(r.firma_conformidad_url, 'Ver firma') : 'Pendiente')))));
     }
     if (v === 'etapas') {
-      if (escribe && ['En ejecución', 'Pausada'].includes(est)) zona.append(h('div.fila', boton('Capturar etapa', { ic: 'mas', href: '#/os/' + id + '/etapa/nueva' })));
+      zona.append(h('div.fila', escribe && ['En ejecución', 'Pausada'].includes(est) ? boton('Capturar etapa', { ic: 'mas', href: '#/os/' + id + '/etapa/nueva' }) : null,
+        rol() !== 'Socio' && !['Terminada', 'Cancelada'].includes(est) ? boton('Calcular mezcla', { tipo: 'secundario', ic: 'herramienta', href: hrefMezclaOS(r, etapas) }) : null));
       if (!etapas.length) { zona.append(h('div.vacio', h('span.vacio__icono', icono('mapa', 32)), h('span.vacio__titulo', 'Sin etapas registradas'), h('p', est === 'Confirmada' ? 'Inicie el servicio para capturar la primera etapa.' : 'Cada día o lote de trabajo se captura como una etapa.'))); return; }
       etapas.forEach(e => zona.append(tarjetaEtapa(r, e, escribe)));
     }

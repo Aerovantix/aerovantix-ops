@@ -1,6 +1,6 @@
 // Aerovantix Ops · Service worker: precaché del app shell (HTML, CSS, JS, fuentes, íconos y logo) para trabajar sin conexión.
 // Las llamadas al motor (script.google.com) nunca se guardan en caché: la cola de salida vive en IndexedDB.
-const CACHE = 'avx-ops-5987b4857b';
+const CACHE = 'avx-ops-1-4-0-mezcla';
 const ARCHIVOS = [
   "./",
   "css/app.css",
@@ -42,6 +42,7 @@ const ARCHIVOS = [
   "js/modulos/comunes.js",
   "js/modulos/cotizaciones.js",
   "js/modulos/inicio.js",
+  "js/modulos/mezcla.js",
   "js/modulos/operacion.js",
   "js/modulos/portal.js",
   "js/modulos/procesos.js",
